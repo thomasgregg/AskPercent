@@ -73,11 +73,19 @@ struct HomeView: View {
         }
         .onAppear {
             viewModel.bind(store: store)
+            requestInputFocus()
+        }
+        .onChange(of: navigation.selectedTab) { _, newValue in
+            if newValue == 0 {
+                requestInputFocus()
+            } else {
+                isInputFocused = false
+            }
         }
         .onChange(of: navigation.pendingQuery) { _, newValue in
             guard let newValue else { return }
             viewModel.applyQuery(newValue)
-            isInputFocused = true
+            requestInputFocus()
             navigation.pendingQuery = nil
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.82), value: viewModel.current?.id)
@@ -163,5 +171,11 @@ struct HomeView: View {
                         .stroke(cardBorder, lineWidth: 1)
                 )
         )
+    }
+
+    private func requestInputFocus() {
+        DispatchQueue.main.async {
+            isInputFocused = true
+        }
     }
 }
