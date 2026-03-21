@@ -4,6 +4,8 @@ struct ResultCardView: View {
     @Environment(\.colorScheme) private var colorScheme
     let result: CalculationResult
     let settings: UserSettings
+    let onCopyResult: (() -> Void)?
+    let onCopyFullDetails: (() -> Void)?
 
     private var locale: Locale {
         settings.numberFormatStyle.locale
@@ -11,6 +13,10 @@ struct ResultCardView: View {
 
     private var strings: AppStrings {
         AppStrings(language: settings.language)
+    }
+
+    private var supportsCopyActions: Bool {
+        onCopyResult != nil || onCopyFullDetails != nil
     }
 
     private var cardBackground: Color {
@@ -49,10 +55,30 @@ struct ResultCardView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(result.primaryLabel)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 12) {
+                Text(result.primaryLabel)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                Spacer(minLength: 0)
+
+                if supportsCopyActions {
+                    Button {
+                        if let onCopyFullDetails {
+                            onCopyFullDetails()
+                        } else {
+                            onCopyResult?()
+                        }
+                    } label: {
+                        Image(systemName: "doc.on.doc")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(strings.copyFullDetailsAction)
+                }
+            }
 
             Text(mainValueText)
                 .font(.system(size: 40, weight: .bold, design: .rounded))
@@ -64,7 +90,7 @@ struct ResultCardView: View {
                 .foregroundStyle(.primary)
 
             if settings.showFormula {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text(strings.formulaLabel)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
@@ -76,7 +102,7 @@ struct ResultCardView: View {
 
             if !result.breakdown.isEmpty {
                 Divider()
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 12) {
                     ForEach(Array(result.breakdown.enumerated()), id: \.offset) { _, item in
                         HStack {
                             Text(item.label)
@@ -93,7 +119,8 @@ struct ResultCardView: View {
                 }
             }
         }
-        .padding(20)
+        .padding(22)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(cardBackground)
@@ -102,5 +129,17 @@ struct ResultCardView: View {
                         .stroke(Color(uiColor: .separator).opacity(0.4), lineWidth: 1)
                 )
         )
+        .contextMenu {
+            if let onCopyResult {
+                Button(strings.copyResultAction, systemImage: "number.square") {
+                    onCopyResult()
+                }
+            }
+            if let onCopyFullDetails {
+                Button(strings.copyFullDetailsAction, systemImage: "doc.on.doc") {
+                    onCopyFullDetails()
+                }
+            }
+        }
     }
 }

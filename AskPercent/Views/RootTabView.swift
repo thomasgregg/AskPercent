@@ -18,15 +18,15 @@ struct RootTabView: View {
             }
             .tag(0)
 
-            HistoryView()
-                .tabItem {
-                    Label(strings.historyTab, systemImage: "clock.arrow.circlepath")
-                }
-                .tag(1)
-
             FavoritesView()
                 .tabItem {
                     Label(strings.favoritesTab, systemImage: "star")
+                }
+                .tag(1)
+
+            HistoryView()
+                .tabItem {
+                    Label(strings.historyTab, systemImage: "clock.arrow.circlepath")
                 }
                 .tag(2)
 

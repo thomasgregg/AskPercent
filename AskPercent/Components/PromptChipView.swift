@@ -16,8 +16,8 @@ struct PromptChipView: View {
             Text(text)
                 .font(.subheadline.weight(.medium))
                 .padding(.horizontal, 18)
-                .padding(.vertical, 12)
-                .frame(minHeight: 44)
+                .padding(.vertical, 14)
+                .frame(minHeight: 50)
                 .background(
                     Capsule()
                         .fill(chipBackground)

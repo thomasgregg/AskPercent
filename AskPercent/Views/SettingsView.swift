@@ -12,25 +12,27 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(strings.settingsCalculationSection) {
+                Section(strings.settingsLanguageFormatSection) {
                     Picker(strings.settingsLanguageLabel, selection: languageBinding) {
                         ForEach(AppLanguage.allCases) { language in
                             Text(language.displayName(interfaceLanguage: store.settings.language.resolved)).tag(language)
                         }
                     }
 
+                    Picker(strings.settingsNumberFormatLabel, selection: numberFormatBinding) {
+                        ForEach(NumberFormatStyle.allCases) { style in
+                            Text(style.displayName(language: store.settings.language)).tag(style)
+                        }
+                    }
+                }
+
+                Section(strings.settingsCalculationSection) {
                     Stepper(value: decimalPrecisionBinding, in: 0...6) {
                         HStack {
                             Text(strings.settingsPrecisionLabel)
                             Spacer()
                             Text("\(store.settings.decimalPrecision)")
                                 .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    Picker(strings.settingsNumberFormatLabel, selection: numberFormatBinding) {
-                        ForEach(NumberFormatStyle.allCases) { style in
-                            Text(style.displayName(language: store.settings.language)).tag(style)
                         }
                     }
 
@@ -48,6 +50,7 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle(strings.settingsTitle)
+            .navigationBarTitleDisplayMode(.large)
             .alert(strings.settingsClearHistoryTitle, isPresented: $showClearHistoryAlert) {
                 Button(strings.cancelButton, role: .cancel) {}
                 Button(strings.clearButton, role: .destructive) {

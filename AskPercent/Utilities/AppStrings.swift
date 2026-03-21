@@ -102,6 +102,48 @@ struct AppStrings {
         }
     }
 
+    var clearQueryAccessibility: String {
+        switch language {
+        case .english: return "Clear query"
+        case .german: return "Eingabe löschen"
+        }
+    }
+
+    var copyResultAction: String {
+        switch language {
+        case .english: return "Copy Result"
+        case .german: return "Ergebnis kopieren"
+        }
+    }
+
+    var copyFullDetailsAction: String {
+        switch language {
+        case .english: return "Copy Full Details"
+        case .german: return "Alle Details kopieren"
+        }
+    }
+
+    var copyQuestionLabel: String {
+        switch language {
+        case .english: return "Question"
+        case .german: return "Frage"
+        }
+    }
+
+    var copyExplanationLabel: String {
+        switch language {
+        case .english: return "Explanation"
+        case .german: return "Erklärung"
+        }
+    }
+
+    var copyBreakdownLabel: String {
+        switch language {
+        case .english: return "Breakdown"
+        case .german: return "Aufschlüsselung"
+        }
+    }
+
     var formulaLabel: String {
         switch language {
         case .english: return "Formula"
@@ -120,6 +162,20 @@ struct AppStrings {
         switch language {
         case .english: return "History"
         case .german: return "Verlauf"
+        }
+    }
+
+    var historyTodaySection: String {
+        switch language {
+        case .english: return "Today"
+        case .german: return "Heute"
+        }
+    }
+
+    var historyYesterdaySection: String {
+        switch language {
+        case .english: return "Yesterday"
+        case .german: return "Gestern"
         }
     }
 
@@ -169,6 +225,13 @@ struct AppStrings {
         switch language {
         case .english: return "Calculation"
         case .german: return "Berechnung"
+        }
+    }
+
+    var settingsLanguageFormatSection: String {
+        switch language {
+        case .english: return "Language & Format"
+        case .german: return "Sprache & Format"
         }
     }
 

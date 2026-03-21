@@ -4,6 +4,25 @@ final class PercentQueryParser {
     private let normalizer: QueryNormalizer
     private let numberCapture = #"([-+]?\d+(?:[.,]\d+)?)"#
     private let percentTokenPattern = #"(?:%|percent|prozent)"#
+    private let reversePercentWholeHints = [
+        "100",
+        "whole",
+        "total",
+        "total value",
+        "full value",
+        "base",
+        "base value",
+        "base amount",
+        "original value",
+        "ganz",
+        "ganzes",
+        "ganze",
+        "gesamt",
+        "gesamtwert",
+        "gesamtsumme",
+        "gesamtbetrag",
+        "grundwert"
+    ]
 
     init(normalizer: QueryNormalizer = QueryNormalizer()) {
         self.normalizer = normalizer
@@ -287,8 +306,10 @@ final class PercentQueryParser {
     }
 
     private func parseReversePercent(in text: String) -> [ParseCandidate] {
-        let standardPattern = #"\b(?:if\s+|wenn\s+)?"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*(?:is|equals|=|sind|ist|entsprechen)\s*"# + numberCapture + #"\b"#
+        let standardPattern = #"\b(?:if\s+|wenn\s+)?"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*(?:is|are|equals|=|sind|ist|entsprechen|betragen)\s*"# + numberCapture + #"\b"#
         let invertedGermanPattern = #"\b(?:wenn\s+)?"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + numberCapture + #"\s*(?:sind|ist)\b"#
+        let swappedOrderPattern = #"\b"# + numberCapture + #"\s*(?:is|are|equals|=|sind|ist|entsprechen|betragen)\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?:\b|$)"#
+        let hasWholeHint = containsAnyHint(in: text, hints: reversePercentWholeHints)
 
         let standard = captures(standardPattern, in: text).compactMap { capture -> ParseCandidate? in
             guard
@@ -296,7 +317,7 @@ final class PercentQueryParser {
                 let partial = double(capture[1])
             else { return nil }
 
-            let confidence = (text.contains("100") || text.contains("whole") || text.contains("ganz") || text.contains("gesamt")) ? 0.98 : 0.88
+            let confidence = hasWholeHint ? 0.98 : 0.88
             return ParseCandidate(
                 intent: .reversePercent(percent: percent, partial: partial),
                 confidence: confidence,
@@ -310,7 +331,7 @@ final class PercentQueryParser {
                 let partial = double(capture[1])
             else { return nil }
 
-            let confidence = (text.contains("100") || text.contains("ganz") || text.contains("gesamt")) ? 0.95 : 0.82
+            let confidence = hasWholeHint ? 0.95 : 0.82
             return ParseCandidate(
                 intent: .reversePercent(percent: percent, partial: partial),
                 confidence: confidence,
@@ -318,15 +339,31 @@ final class PercentQueryParser {
             )
         }
 
-        return standard + invertedGerman
+        let swappedOrder = captures(swappedOrderPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let partial = double(capture[0]),
+                let percent = double(capture[1])
+            else { return nil }
+
+            let confidence = hasWholeHint ? 0.94 : 0.86
+            return ParseCandidate(
+                intent: .reversePercent(percent: percent, partial: partial),
+                confidence: confidence,
+                interpretation: "if \(percent)% is \(partial), what is 100%"
+            )
+        }
+
+        return standard + invertedGerman + swappedOrder
     }
 
     private func parseRelation(in text: String) -> [ParseCandidate] {
         let directPattern = #"\b"# + numberCapture + #"\s+is\s+what\s+percent\s+of\s+"# + numberCapture + #"\b"#
         let inversePattern = #"\bwhat\s+percent\s+is\s+"# + numberCapture + #"\s+of\s+"# + numberCapture + #"\b"#
+        let shorthandPattern = #"\b"# + numberCapture + #"\s+of\s+"# + numberCapture + #"\b"#
 
         let germanDirectPattern = #"\b"# + numberCapture + #"\s+(?:sind|ist)\s+(?:wie\s+viel|wieviel)\s+prozent\s+von\s+"# + numberCapture + #"\b"#
         let germanInversePattern = #"\b(?:wie\s+viel|wieviel)\s+prozent\s+(?:sind|ist)\s+"# + numberCapture + #"\s+von\s+"# + numberCapture + #"\b"#
+        let germanShorthandPattern = #"\b"# + numberCapture + #"\s+von\s+"# + numberCapture + #"\b"#
 
         let direct = captures(directPattern, in: text).compactMap { capture -> ParseCandidate? in
             guard let part = double(capture[0]), let whole = double(capture[1]) else { return nil }
@@ -343,6 +380,15 @@ final class PercentQueryParser {
                 intent: .percentOfRelation(part: part, whole: whole),
                 confidence: 0.97,
                 interpretation: "what percent is \(part) of \(whole)"
+            )
+        }
+
+        let shorthand = captures(shorthandPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let part = double(capture[0]), let whole = double(capture[1]) else { return nil }
+            return ParseCandidate(
+                intent: .percentOfRelation(part: part, whole: whole),
+                confidence: 0.94,
+                interpretation: "\(part) of \(whole)"
             )
         }
 
@@ -364,7 +410,16 @@ final class PercentQueryParser {
             )
         }
 
-        return direct + inverse + germanDirect + germanInverse
+        let germanShorthand = captures(germanShorthandPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let part = double(capture[0]), let whole = double(capture[1]) else { return nil }
+            return ParseCandidate(
+                intent: .percentOfRelation(part: part, whole: whole),
+                confidence: 0.94,
+                interpretation: "\(part) von \(whole)"
+            )
+        }
+
+        return direct + inverse + shorthand + germanDirect + germanInverse + germanShorthand
     }
 
     private func parseTipTaxVat(in text: String) -> [ParseCandidate] {
@@ -524,8 +579,8 @@ final class PercentQueryParser {
     }
 
     private func parseMarkup(in text: String) -> [ParseCandidate] {
-        let englishPattern = #"\b(?:what\s+)?markup(?:\s+is)?\s*"# + numberCapture + #"\s+on\s+(?:cost\s+)?"# + numberCapture + #"\b"#
-        let germanPattern = #"\b(?:was\s+ist\s+|welcher\s+)?(?:(?:die|der|den)\s+)?aufschlag(?:\s+ist)?\s*"# + numberCapture + #"\s+auf\s+(?:kosten\s+)?"# + numberCapture + #"\b"#
+        let englishPattern = #"\b(?:what\s+(?:is\s+)?(?:the\s+)?)?markup(?:\s+is)?\s*"# + numberCapture + #"\s+on\s+(?:cost(?:\s+of)?\s+)?"# + numberCapture + #"\b"#
+        let germanPattern = #"\b(?:was\s+ist\s+|welcher\s+)?(?:(?:die|der|den)\s+)?aufschlag(?:\s+ist)?\s*"# + numberCapture + #"\s+auf\s+(?:kosten(?:\s+von)?\s+)?"# + numberCapture + #"\b"#
 
         let english = captures(englishPattern, in: text).compactMap { capture -> ParseCandidate? in
             guard let profit = double(capture[0]), let cost = double(capture[1]) else { return nil }
@@ -621,7 +676,7 @@ final class PercentQueryParser {
         case .discountPercent:
             return (query.contains("discount") || query.contains("rabatt") || query.contains("statt") || query.contains("anstatt")) ? 0.04 : 0
         case .reversePercent:
-            return (query.contains("100") || query.contains("whole") || query.contains("ganz") || query.contains("gesamt")) ? 0.03 : 0
+            return containsAnyHint(in: query, hints: reversePercentWholeHints) ? 0.03 : 0
         case .percentOfRelation:
             return (query.contains("what percent") || query.contains("wie viel prozent") || query.contains("wieviel prozent")) ? 0.03 : 0
         case .tip:
@@ -673,5 +728,9 @@ final class PercentQueryParser {
 
     private func double(_ text: String) -> Double? {
         QueryNormalizer.parseNumber(text)
+    }
+
+    private func containsAnyHint(in text: String, hints: [String]) -> Bool {
+        hints.contains { text.contains($0) }
     }
 }

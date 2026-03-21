@@ -20,16 +20,21 @@ struct FavoritesView: View {
                                 navigation.pendingQuery = item.query
                                 navigation.selectedTab = 0
                             } label: {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(item.query)
-                                        .font(.body.weight(.medium))
-                                        .foregroundStyle(.primary)
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(item.query)
+                                            .font(.body.weight(.medium))
+                                            .foregroundStyle(.primary)
 
-                                    Text(valueText(for: item))
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
+                                        Text(valueText(for: item))
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer(minLength: 0)
                                 }
                                 .padding(.vertical, 4)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                         }
@@ -39,6 +44,7 @@ struct FavoritesView: View {
                 }
             }
             .navigationTitle(strings.favoritesTitle)
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 

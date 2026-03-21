@@ -57,6 +57,10 @@ final class LocalPersistenceStore: ObservableObject {
         history.remove(atOffsets: offsets)
     }
 
+    func deleteHistory(ids: Set<UUID>) {
+        history.removeAll { ids.contains($0.id) }
+    }
+
     func clearHistory() {
         history.removeAll()
     }
