@@ -399,4 +399,121 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertTrue(types.contains(.percentOf))
         XCTAssertTrue(types.contains(.addPercent))
     }
+
+    func testParserSupportsGroupedNumberFormats() throws {
+        let english = parser.parse("12.5% of 1'234.56")
+        XCTAssertEqual(english.candidates.first?.intent.type, .percentOf)
+        guard let englishIntent = english.candidates.first?.intent else {
+            return XCTFail("Expected English grouped-number percent-of candidate")
+        }
+        let englishResult = try calculator.calculate(intent: englishIntent)
+        XCTAssertEqual(englishResult.value, 154.32, accuracy: 0.000_001)
+
+        let german = parser.parse("12,5% von 1 234,56")
+        XCTAssertEqual(german.candidates.first?.intent.type, .percentOf)
+        guard let germanIntent = german.candidates.first?.intent else {
+            return XCTFail("Expected German grouped-number percent-of candidate")
+        }
+        let germanResult = try calculator.calculate(intent: germanIntent)
+        XCTAssertEqual(germanResult.value, 154.32, accuracy: 0.000_001)
+    }
+
+    func testDecimalPercentInputs() throws {
+        let dotOutcome = parser.parse("12.5% of 200")
+        XCTAssertEqual(dotOutcome.candidates.first?.intent.type, .percentOf)
+        guard let dotIntent = dotOutcome.candidates.first?.intent else {
+            return XCTFail("Expected decimal-dot percent candidate")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: dotIntent).value, 25, accuracy: 0.000_001)
+
+        let commaOutcome = parser.parse("12,5% von 200")
+        XCTAssertEqual(commaOutcome.candidates.first?.intent.type, .percentOf)
+        guard let commaIntent = commaOutcome.candidates.first?.intent else {
+            return XCTFail("Expected decimal-comma percent candidate")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: commaIntent).value, 25, accuracy: 0.000_001)
+    }
+
+    func testNegativeAndZeroPercentValues() throws {
+        let negativeOutcome = parser.parse("-20% of 50")
+        XCTAssertEqual(negativeOutcome.candidates.first?.intent.type, .percentOf)
+        guard let negativeIntent = negativeOutcome.candidates.first?.intent else {
+            return XCTFail("Expected negative percent-of candidate")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: negativeIntent).value, -10, accuracy: 0.000_001)
+
+        let zeroOutcome = parser.parse("0% of 900")
+        XCTAssertEqual(zeroOutcome.candidates.first?.intent.type, .percentOf)
+        guard let zeroIntent = zeroOutcome.candidates.first?.intent else {
+            return XCTFail("Expected zero percent-of candidate")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: zeroIntent).value, 0, accuracy: 0.000_001)
+    }
+
+    func testDivideByZeroSurfaceForPercentChange() {
+        let outcome = parser.parse("from 0 to 10")
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .percentChange)
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected percent-change candidate")
+        }
+        XCTAssertThrowsError(try calculator.calculate(intent: intent))
+    }
+
+    func testIncreaseDecreaseByPatterns() throws {
+        let increase = parser.parse("increase 100 by 20%")
+        XCTAssertEqual(increase.candidates.first?.intent.type, .addPercent)
+        guard let increaseIntent = increase.candidates.first?.intent else {
+            return XCTFail("Expected add-percent candidate for increase by")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: increaseIntent).value, 120, accuracy: 0.000_001)
+
+        let decrease = parser.parse("decrease 100 by 20%")
+        XCTAssertEqual(decrease.candidates.first?.intent.type, .subtractPercent)
+        guard let decreaseIntent = decrease.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent candidate for decrease by")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: decreaseIntent).value, 80, accuracy: 0.000_001)
+    }
+
+    func testNowThenPercentChangeVariants() throws {
+        let english = parser.parse("was 80 now 96")
+        XCTAssertEqual(english.candidates.first?.intent.type, .percentChange)
+        guard let englishIntent = english.candidates.first?.intent else {
+            return XCTFail("Expected percent-change candidate for 'was ... now ...'")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: englishIntent).value, 20, accuracy: 0.000_001)
+
+        let german = parser.parse("war 80 jetzt 96")
+        XCTAssertEqual(german.candidates.first?.intent.type, .percentChange)
+        guard let germanIntent = german.candidates.first?.intent else {
+            return XCTFail("Expected percent-change candidate for 'war ... jetzt ...'")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: germanIntent).value, 20, accuracy: 0.000_001)
+    }
+
+    func testReversePercentWholeSynonyms() {
+        XCTAssertEqual(parser.parse("20% is 30 what is the original amount").candidates.first?.intent.type, .reversePercent)
+        XCTAssertEqual(parser.parse("20% sind 30 wie groß ist der grundbetrag").candidates.first?.intent.type, .reversePercent)
+    }
+
+    func testVatInclusivePhrasing() {
+        XCTAssertEqual(parser.parse("price incl. 19% VAT").candidates.first?.intent.type, .vat)
+        XCTAssertEqual(parser.parse("preis inkl. 19% mwst").candidates.first?.intent.type, .vat)
+    }
+
+    func testMarginNounVariants() {
+        XCTAssertEqual(parser.parse("gross margin 40 on 120").candidates.first?.intent.type, .margin)
+        XCTAssertEqual(parser.parse("bruttomarge 40 auf 120").candidates.first?.intent.type, .margin)
+        XCTAssertEqual(parser.parse("handelsspanne 40 auf 120").candidates.first?.intent.type, .margin)
+    }
+
+    func testAmbiguousOnPatternWithoutPercentSymbol() {
+        let outcome = parser.parse("25 on 167")
+        XCTAssertTrue(outcome.isAmbiguous)
+        XCTAssertGreaterThanOrEqual(outcome.candidates.count, 2)
+
+        let types = outcome.candidates.map { $0.intent.type }
+        XCTAssertTrue(types.contains(.percentOf))
+        XCTAssertTrue(types.contains(.addPercent))
+    }
 }

@@ -36,6 +36,7 @@ struct RootTabView: View {
                 }
                 .tag(3)
         }
+        .tint(Color.accentColor)
         .environmentObject(navigation)
     }
 }

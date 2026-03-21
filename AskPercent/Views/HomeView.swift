@@ -108,7 +108,8 @@ struct HomeView: View {
         } label: {
             Image(systemName: viewModel.isCurrentFavorite ? "star.fill" : "star")
                 .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(.primary)
+                .symbolRenderingMode(.monochrome)
+                .foregroundStyle(viewModel.isCurrentFavorite ? Color.accentColor : .primary)
                 .frame(width: 52, height: 52)
                 .background(
                     Circle()
@@ -178,7 +179,8 @@ struct HomeView: View {
                         } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                                .symbolRenderingMode(.monochrome)
+                                .foregroundStyle(Color.accentColor)
                         }
                         .padding(.trailing, 14)
                         .accessibilityLabel(strings.clearQueryAccessibility)

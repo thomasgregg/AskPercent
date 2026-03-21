@@ -3,9 +3,24 @@ import SwiftUI
 struct FavoritesView: View {
     @EnvironmentObject private var store: LocalPersistenceStore
     @EnvironmentObject private var navigation: AppNavigationState
+    @Environment(\.colorScheme) private var colorScheme
 
     private var strings: AppStrings {
         AppStrings(language: store.settings.language)
+    }
+
+    private var pageBackground: Color {
+        Color(uiColor: .systemGroupedBackground)
+    }
+
+    private var rowCardBackground: Color {
+        colorScheme == .dark
+        ? Color(uiColor: .secondarySystemGroupedBackground)
+        : Color(uiColor: .systemBackground)
+    }
+
+    private var rowCardBorder: Color {
+        Color(uiColor: .separator).opacity(colorScheme == .dark ? 0.5 : 0.35)
     }
 
     var body: some View {
@@ -31,18 +46,35 @@ struct FavoritesView: View {
                                             .foregroundStyle(.secondary)
                                     }
                                     Spacer(minLength: 0)
+                                    Image(systemName: "chevron.right")
+                                        .font(.footnote.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
                                 }
-                                .padding(.vertical, 4)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 14)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
+                                .background(
+                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                        .fill(rowCardBackground)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                                .stroke(rowCardBorder, lineWidth: 1)
+                                        )
+                                )
+                                .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                             }
                             .buttonStyle(.plain)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                         }
                         .onDelete(perform: store.deleteFavorite)
                     }
-                    .listStyle(.insetGrouped)
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
+            .background(pageBackground.ignoresSafeArea())
             .navigationTitle(strings.favoritesTitle)
             .navigationBarTitleDisplayMode(.large)
         }

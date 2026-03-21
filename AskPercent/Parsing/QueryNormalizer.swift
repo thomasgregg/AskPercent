@@ -20,8 +20,12 @@ struct QueryNormalizer {
             .replacingOccurrences(of: "–", with: "-")
             .replacingOccurrences(of: "—", with: "-")
             .replacingOccurrences(of: "%", with: " % ")
+            .replacingOccurrences(of: "incl.", with: "incl")
+            .replacingOccurrences(of: "inkl.", with: "inkl")
 
         normalized = normalized.replacingOccurrences(of: punctuationPattern, with: " ", options: .regularExpression)
+        normalized = normalized.replacingOccurrences(of: #"(?<=\d)[’'](?=\d)"#, with: "", options: .regularExpression)
+        normalized = normalized.replacingOccurrences(of: #"(?<=\d)\s(?=\d{3}(?:\D|$))"#, with: "", options: .regularExpression)
         normalized = normalized.replacingOccurrences(of: spacesPattern, with: " ", options: .regularExpression)
         return normalized.trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -46,6 +50,10 @@ struct QueryNormalizer {
     static func parseNumber(_ raw: String) -> Double? {
         var value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !value.isEmpty else { return nil }
+        value = value
+            .replacingOccurrences(of: "'", with: "")
+            .replacingOccurrences(of: "’", with: "")
+            .replacingOccurrences(of: " ", with: "")
 
         let hasComma = value.contains(",")
         let hasDot = value.contains(".")

@@ -13,6 +13,7 @@ final class PercentQueryParser {
         "base",
         "base value",
         "base amount",
+        "original amount",
         "original value",
         "ganz",
         "ganzes",
@@ -21,7 +22,8 @@ final class PercentQueryParser {
         "gesamtwert",
         "gesamtsumme",
         "gesamtbetrag",
-        "grundwert"
+        "grundwert",
+        "grundbetrag"
     ]
 
     init(normalizer: QueryNormalizer = QueryNormalizer()) {
@@ -48,6 +50,7 @@ final class PercentQueryParser {
         candidates.append(contentsOf: parsePercentOf(in: normalized))
         candidates.append(contentsOf: parseAddPercent(in: normalized))
         candidates.append(contentsOf: parseSubtractPercent(in: normalized))
+        candidates.append(contentsOf: parseIncreaseDecreaseBy(in: normalized))
         candidates.append(contentsOf: parsePercentChange(in: normalized))
         candidates.append(contentsOf: parseDiscount(in: normalized))
         candidates.append(contentsOf: parseReversePercent(in: normalized))
@@ -72,11 +75,12 @@ final class PercentQueryParser {
     }
 
     private func parsePercentOf(in text: String) -> [ParseCandidate] {
-        let symbolPattern = #"\b(?:what\s+is\s+)?"# + numberCapture + #"\s*%\s*(?:percent\s*)?of\s*"# + numberCapture + #"\b"#
-        let wordPattern = #"\b(?:what\s+is\s+)?"# + numberCapture + #"\s*percent\s+of\s+"# + numberCapture + #"\b"#
+        let startBoundary = #"(?<![\p{L}\d])"#
+        let symbolPattern = startBoundary + #"(?:what\s+is\s+)?"# + numberCapture + #"\s*%\s*(?:percent\s*)?of\s*"# + numberCapture + #"(?![\p{L}\d])"#
+        let wordPattern = startBoundary + #"(?:what\s+is\s+)?"# + numberCapture + #"\s*percent\s+of\s+"# + numberCapture + #"(?![\p{L}\d])"#
 
-        let germanSymbolPattern = #"\b(?:(?:wie\s+viel|wieviel|was)\s+(?:sind|ist)\s+)?"# + numberCapture + #"\s*%\s*(?:prozent\s*)?von\s+"# + numberCapture + #"\b"#
-        let germanWordPattern = #"\b(?:(?:wie\s+viel|wieviel|was)\s+(?:sind|ist)\s+)?"# + numberCapture + #"\s*prozent\s+von\s+"# + numberCapture + #"\b"#
+        let germanSymbolPattern = startBoundary + #"(?:(?:wie\s+viel|wieviel|was)\s+(?:sind|ist)\s+)?"# + numberCapture + #"\s*%\s*(?:prozent\s*)?von\s+"# + numberCapture + #"(?![\p{L}\d])"#
+        let germanWordPattern = startBoundary + #"(?:(?:wie\s+viel|wieviel|was)\s+(?:sind|ist)\s+)?"# + numberCapture + #"\s*prozent\s+von\s+"# + numberCapture + #"(?![\p{L}\d])"#
 
         let symbolMatches: [[String]] = captures(symbolPattern, in: text)
         let symbolCandidates: [ParseCandidate] = symbolMatches.compactMap { capture -> ParseCandidate? in
@@ -123,7 +127,7 @@ final class PercentQueryParser {
 
     private func parseAddPercent(in text: String) -> [ParseCandidate] {
         let excludedKindsPattern = #"(?:tip|tax|vat|trinkgeld|steuer|mwst|ust|umsatzsteuer)"#
-        let connectorPattern = #"(?:plus|add|added|with|including|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
+        let connectorPattern = #"(?:plus|add|added|with|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
         let wordPattern = #"\b"# + numberCapture + #"\s*"# + connectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?!\s*"# + excludedKindsPattern + #")"#
         let symbolPattern = #"\b"# + numberCapture + #"\s*\+\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?!\s*"# + excludedKindsPattern + #")"#
 
@@ -194,12 +198,48 @@ final class PercentQueryParser {
         return wordCandidates + symbolCandidates
     }
 
+    private func parseIncreaseDecreaseBy(in text: String) -> [ParseCandidate] {
+        let increasePattern = #"\b(?:increase|raise|grow)\s+"# + numberCapture + #"\s+by\s+"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?:\b|$)"#
+        let decreasePattern = #"\b(?:decrease|reduce|lower|drop)\s+"# + numberCapture + #"\s+by\s+"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?:\b|$)"#
+
+        let increaseCandidates = captures(increasePattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let base = double(capture[0]), let percent = double(capture[1]) else { return nil }
+            return ParseCandidate(
+                intent: .addPercent(base: base, percent: percent),
+                confidence: 0.97,
+                interpretation: "increase \(base) by \(percent)%"
+            )
+        }
+
+        let decreaseCandidates = captures(decreasePattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let base = double(capture[0]), let percent = double(capture[1]) else { return nil }
+            return ParseCandidate(
+                intent: .subtractPercent(base: base, percent: percent),
+                confidence: 0.97,
+                interpretation: "decrease \(base) by \(percent)%"
+            )
+        }
+
+        return increaseCandidates + decreaseCandidates
+    }
+
     private func parsePercentChange(in text: String) -> [ParseCandidate] {
         let englishPattern = #"\b(?:from\s+)?"# + numberCapture + #"\s+to\s+"# + numberCapture + #"\b"#
         let germanPattern = #"\b(?:von\s+)?"# + numberCapture + #"\s+(?:auf|zu)\s+"# + numberCapture + #"\b"#
         let englishBeforeNowPattern = #"\b(?:before|previously)\s+"# + numberCapture + #"\s+(?:now|currently)\s+"# + numberCapture + #"\b"#
         let germanBeforeNowPattern = #"\b(?:vorher|zuvor|früher|frueher)\s+"# + numberCapture + #"\s+(?:jetzt|nun)\s+"# + numberCapture + #"\b"#
-        let hasProfitKeywords = text.contains("margin") || text.contains("profit") || text.contains("marge") || text.contains("gewinnspanne") || text.contains("gewinn") || text.contains("markup") || text.contains("aufschlag")
+        let englishWasNowPattern = #"\b(?:was|then|earlier)\s+"# + numberCapture + #"\s+(?:now|currently)\s+"# + numberCapture + #"\b"#
+        let germanWarJetztPattern = #"\b(?:war|früher|frueher)\s+"# + numberCapture + #"\s+(?:jetzt|nun)\s+"# + numberCapture + #"\b"#
+        let hasProfitKeywords = text.contains("margin")
+            || text.contains("gross margin")
+            || text.contains("profit")
+            || text.contains("marge")
+            || text.contains("bruttomarge")
+            || text.contains("handelsspanne")
+            || text.contains("gewinnspanne")
+            || text.contains("gewinn")
+            || text.contains("markup")
+            || text.contains("aufschlag")
 
         let english = captures(englishPattern, in: text).compactMap { capture -> ParseCandidate? in
             guard
@@ -269,7 +309,41 @@ final class PercentQueryParser {
             )
         }
 
-        return english + german + englishBeforeNow + germanBeforeNow
+        let englishWasNow = captures(englishWasNowPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let old = double(capture[0]),
+                let new = double(capture[1])
+            else { return nil }
+
+            var confidence = 0.91
+            if hasProfitKeywords {
+                confidence -= 0.24
+            }
+            return ParseCandidate(
+                intent: .percentChange(old: old, new: new),
+                confidence: confidence,
+                interpretation: "percent change from \(old) to \(new)"
+            )
+        }
+
+        let germanWarJetzt = captures(germanWarJetztPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let old = double(capture[0]),
+                let new = double(capture[1])
+            else { return nil }
+
+            var confidence = 0.91
+            if hasProfitKeywords {
+                confidence -= 0.24
+            }
+            return ParseCandidate(
+                intent: .percentChange(old: old, new: new),
+                confidence: confidence,
+                interpretation: "prozentänderung von \(old) auf \(new)"
+            )
+        }
+
+        return english + german + englishBeforeNow + germanBeforeNow + englishWasNow + germanWarJetzt
     }
 
     private func parseDiscount(in text: String) -> [ParseCandidate] {
@@ -425,7 +499,7 @@ final class PercentQueryParser {
     private func parseTipTaxVat(in text: String) -> [ParseCandidate] {
         var results = [ParseCandidate]()
 
-        let connectorPattern = #"(?:with|plus|including|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
+        let connectorPattern = #"(?:with|plus|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
         let kindPattern = #"(tip|tax|vat|trinkgeld|steuer|mwst|ust|umsatzsteuer)"#
 
         let trailingKindPattern = #"\b"# + numberCapture + #"\s*"# + connectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + kindPattern + #"\b"#
@@ -450,6 +524,13 @@ final class PercentQueryParser {
             results.append(candidateForKind(base: base, percent: percent, kind: kind, confidence: 0.97))
         }
 
+        let rateOnlyPattern = #"\b(?:price|preis)?\s*(?:with|plus|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + kindPattern + #"\b"#
+        for capture in captures(rateOnlyPattern, in: text) {
+            guard let percent = double(capture[0]) else { continue }
+            let kind = capture[1]
+            results.append(candidateForKind(base: 100, percent: percent, kind: kind, confidence: 0.55))
+        }
+
         return results
     }
 
@@ -465,8 +546,8 @@ final class PercentQueryParser {
     }
 
     private func parseMargin(in text: String) -> [ParseCandidate] {
-        let englishPattern = #"\b(?:what\s+(?:is\s+)?(?:the\s+)?)?(?:margin|profit)(?:\s+is)?\s*"# + numberCapture + #"\s+on\s+"# + numberCapture + #"\b"#
-        let germanPattern = #"\b(?:was\s+ist\s+|welche\s+)?(?:(?:die|der|den)\s+)?(?:marge|gewinnspanne|gewinn)(?:\s+ist)?\s*(?:von\s+)?"# + numberCapture + #"\s+auf\s+"# + numberCapture + #"\b"#
+        let englishPattern = #"\b(?:what\s+(?:is\s+)?(?:the\s+)?)?(?:(?:gross\s+)?margin|profit)(?:\s+is)?\s*"# + numberCapture + #"\s+on\s+"# + numberCapture + #"\b"#
+        let germanPattern = #"\b(?:was\s+ist\s+|welche\s+)?(?:(?:die|der|den)\s+)?(?:marge|bruttomarge|handelsspanne|gewinnspanne|gewinn)(?:\s+ist)?\s*(?:von\s+)?"# + numberCapture + #"\s+auf\s+"# + numberCapture + #"\b"#
 
         let english = captures(englishPattern, in: text).compactMap { capture -> ParseCandidate? in
             guard let profit = double(capture[0]), let revenue = double(capture[1]) else { return nil }
@@ -604,8 +685,10 @@ final class PercentQueryParser {
     }
 
     private func parseAmbiguousOnPattern(in text: String) -> [ParseCandidate] {
-        let pattern = #"\b"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s+(?:on|auf)\s+"# + numberCapture + #"\b"#
-        return captures(pattern, in: text).flatMap { capture -> [ParseCandidate] in
+        let percentPattern = #"\b"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s+(?:on|auf)\s+"# + numberCapture + #"\b"#
+        let shorthandPattern = #"\b"# + numberCapture + #"\s+(?:on|auf)\s+"# + numberCapture + #"\b"#
+
+        let percentCandidates = captures(percentPattern, in: text).flatMap { capture -> [ParseCandidate] in
             guard let percent = double(capture[0]), let base = double(capture[1]) else { return [] }
 
             return [
@@ -621,6 +704,25 @@ final class PercentQueryParser {
                 )
             ]
         }
+
+        let shorthandCandidates = captures(shorthandPattern, in: text).flatMap { capture -> [ParseCandidate] in
+            guard let percent = double(capture[0]), let base = double(capture[1]) else { return [] }
+
+            return [
+                ParseCandidate(
+                    intent: .percentOf(percent: percent, base: base),
+                    confidence: 0.58,
+                    interpretation: "\(percent)% of \(base)"
+                ),
+                ParseCandidate(
+                    intent: .addPercent(base: base, percent: percent),
+                    confidence: 0.57,
+                    interpretation: "\(base) plus \(percent)%"
+                )
+            ]
+        }
+
+        return percentCandidates + shorthandCandidates
     }
 
     private func rankAndDeduplicate(
@@ -668,9 +770,28 @@ final class PercentQueryParser {
         case .percentOf:
             return (query.contains("of") || query.contains("von")) ? 0.03 : 0
         case .addPercent:
-            return (query.contains("plus") || query.contains("with") || query.contains("add") || query.contains("mit") || query.contains("inkl") || query.contains("zzgl") || query.contains("zuzüglich") || query.contains("zuzueglich")) ? 0.02 : 0
+            return (query.contains("plus")
+                    || query.contains("with")
+                    || query.contains("add")
+                    || query.contains("increase")
+                    || query.contains("raise")
+                    || query.contains("grow")
+                    || query.contains("mit")
+                    || query.contains("incl")
+                    || query.contains("inkl")
+                    || query.contains("zzgl")
+                    || query.contains("zuzüglich")
+                    || query.contains("zuzueglich")) ? 0.02 : 0
         case .subtractPercent:
-            return (query.contains("minus") || query.contains("less") || query.contains("weniger") || query.contains("abzüglich") || query.contains("abzueglich")) ? 0.02 : 0
+            return (query.contains("minus")
+                    || query.contains("less")
+                    || query.contains("decrease")
+                    || query.contains("reduce")
+                    || query.contains("lower")
+                    || query.contains("drop")
+                    || query.contains("weniger")
+                    || query.contains("abzüglich")
+                    || query.contains("abzueglich")) ? 0.02 : 0
         case .percentChange:
             return (query.contains("change") || query.contains("increase") || query.contains("decrease") || query.contains("veränderung") || query.contains("veraenderung") || query.contains("anstieg") || query.contains("rückgang") || query.contains("rueckgang")) ? 0.03 : 0
         case .discountPercent:
@@ -686,7 +807,14 @@ final class PercentQueryParser {
         case .vat:
             return (query.contains("vat") || query.contains("mwst") || query.contains("ust") || query.contains("umsatzsteuer")) ? 0.03 : 0
         case .margin:
-            return (query.contains("margin") || query.contains("profit") || query.contains("marge") || query.contains("gewinnspanne") || query.contains("gewinn")) ? 0.03 : 0
+            return (query.contains("margin")
+                    || query.contains("gross margin")
+                    || query.contains("profit")
+                    || query.contains("marge")
+                    || query.contains("bruttomarge")
+                    || query.contains("handelsspanne")
+                    || query.contains("gewinnspanne")
+                    || query.contains("gewinn")) ? 0.03 : 0
         case .markup:
             return (query.contains("markup") || query.contains("aufschlag")) ? 0.03 : 0
         }

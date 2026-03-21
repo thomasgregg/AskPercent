@@ -36,4 +36,21 @@ final class QueryNormalizerTests: XCTestCase {
         XCTAssertEqual(dot, 41.75, accuracy: 0.000_001)
         XCTAssertEqual(grouped, 1234, accuracy: 0.000_001)
     }
+
+    func testNormalizationCompactsGroupedNumbers() {
+        let normalized = normalizer.normalize("12,5% von 1 234,56 und 1'234.56")
+        XCTAssertEqual(normalized, "12,5 % von 1234,56 und 1234.56")
+    }
+
+    func testParseNumberSupportsApostrophesAndSpaces() {
+        guard let spaced = QueryNormalizer.parseNumber("1 234,56") else {
+            return XCTFail("Expected parsing for spaced grouped number")
+        }
+        guard let apostrophe = QueryNormalizer.parseNumber("1'234.56") else {
+            return XCTFail("Expected parsing for apostrophe grouped number")
+        }
+
+        XCTAssertEqual(spaced, 1234.56, accuracy: 0.000_001)
+        XCTAssertEqual(apostrophe, 1234.56, accuracy: 0.000_001)
+    }
 }

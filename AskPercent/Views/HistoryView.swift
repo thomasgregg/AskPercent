@@ -3,9 +3,24 @@ import SwiftUI
 struct HistoryView: View {
     @EnvironmentObject private var store: LocalPersistenceStore
     @EnvironmentObject private var navigation: AppNavigationState
+    @Environment(\.colorScheme) private var colorScheme
 
     private var strings: AppStrings {
         AppStrings(language: store.settings.language)
+    }
+
+    private var pageBackground: Color {
+        Color(uiColor: .systemGroupedBackground)
+    }
+
+    private var rowCardBackground: Color {
+        colorScheme == .dark
+        ? Color(uiColor: .secondarySystemGroupedBackground)
+        : Color(uiColor: .systemBackground)
+    }
+
+    private var rowCardBorder: Color {
+        Color(uiColor: .separator).opacity(colorScheme == .dark ? 0.5 : 0.35)
     }
 
     private var groupedHistory: [(day: Date, items: [HistoryItem])] {
@@ -42,18 +57,29 @@ struct HistoryView: View {
                                                 Text(valueText(for: item))
                                                     .font(.subheadline)
                                                     .foregroundStyle(.secondary)
-
-                                                Text(item.createdAt, style: .time)
-                                                    .font(.caption)
-                                                    .foregroundStyle(.tertiary)
                                             }
                                             Spacer(minLength: 0)
+                                            Image(systemName: "chevron.right")
+                                                .font(.footnote.weight(.semibold))
+                                                .foregroundStyle(.tertiary)
                                         }
-                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 14)
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                        .contentShape(Rectangle())
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                                .fill(rowCardBackground)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                                        .stroke(rowCardBorder, lineWidth: 1)
+                                                )
+                                        )
+                                        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                                     }
                                     .buttonStyle(.plain)
+                                    .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+                                    .listRowSeparator(.hidden)
+                                    .listRowBackground(Color.clear)
                                 }
                                 .onDelete { offsets in
                                     let ids: Set<UUID> = Set(offsets.compactMap { index in
@@ -65,13 +91,18 @@ struct HistoryView: View {
                             }
                             header: {
                                 Text(sectionTitle(for: section.day))
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundStyle(.secondary)
                                     .textCase(nil)
+                                    .padding(.top, 8)
                             }
                         }
                     }
-                    .listStyle(.insetGrouped)
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
+            .background(pageBackground.ignoresSafeArea())
             .navigationTitle(strings.historyTitle)
             .navigationBarTitleDisplayMode(.large)
         }

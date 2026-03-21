@@ -47,7 +47,7 @@ struct AppStrings {
     var headerSubtitle: String {
         switch language {
         case .english: return "Type naturally. The parser runs locally and updates live."
-        case .german: return "Einfach natürlich schreiben. Der Parser läuft lokal und aktualisiert live."
+        case .german: return "Stell deine Frage einfach in natürlicher Sprache. Der Parser läuft lokal und aktualisiert live."
         }
     }
 
@@ -61,7 +61,7 @@ struct AppStrings {
     var ambiguityHint: String {
         switch language {
         case .english: return "Interpretation is ambiguous. Review alternatives below."
-        case .german: return "Mehrdeutige Eingabe. Unten die Alternativen prüfen."
+        case .german: return "Mehrdeutige Eingabe. Die untenstehenden Alternativen prüfen."
         }
     }
 
