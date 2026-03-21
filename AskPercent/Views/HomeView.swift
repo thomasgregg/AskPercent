@@ -25,12 +25,18 @@ struct HomeView: View {
         Color(uiColor: .separator).opacity(colorScheme == .dark ? 0.55 : 0.35)
     }
 
+    private var shouldShowExampleChips: Bool {
+        viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 header
                 inputField
-                chips
+                if shouldShowExampleChips {
+                    chips
+                }
 
                 if let message = viewModel.parseFailureMessage {
                     Text(message)
