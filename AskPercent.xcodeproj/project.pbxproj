@@ -1,0 +1,599 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02FF55C631A0C3A6875ED1E7 /* CalculationIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C1CE9B02E3047A4837E0ED /* CalculationIntent.swift */; };
+		065C8882B74A187D2DCB6FBF /* CalculationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0820098A49E30F1ACE29DC2C /* CalculationResult.swift */; };
+		0EF745D5951ED9DC39884D26 /* AskPercentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006D2DECBD75D673A0609C70 /* AskPercentApp.swift */; };
+		0FCDC0E3D884B9FB6B679165 /* CandidateRankingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFA3A3FC749528B051330807 /* CandidateRankingTests.swift */; };
+		14065115A281781EC46767E3 /* DisplayFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A08900326F9B1495B3843C /* DisplayFormatter.swift */; };
+		230B57882296AFFF1E6C7507 /* FavoriteItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 703ED62224EECC45EE55027E /* FavoriteItem.swift */; };
+		2DD87D3FD1344226C3253638 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23E7BDE4EAFC5AB90FB27A0C /* SettingsView.swift */; };
+		326466CFAD4866180EE79E68 /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C07EF47E2E75870DA7E7F4F /* FavoritesView.swift */; };
+		3CF14366EEB2EA997D804463 /* PercentQueryParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775F34E122B5BA682A110CC6 /* PercentQueryParser.swift */; };
+		59DE73D1348850589CFB85BD /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AF108062169F7E487D6ED5F /* HomeView.swift */; };
+		6008CFFF7F2868E33431E0C1 /* ParseCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0455128204A0E9CD7B53892B /* ParseCandidate.swift */; };
+		74738FAEC70B226B3B108376 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF9B539A4E80DA591160807 /* HistoryView.swift */; };
+		7F96131A6F50C2A2AC31B7CA /* UserSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3683AB582486AC02BD757BE5 /* UserSettingsTests.swift */; };
+		82177A7718B42BEE17712BD5 /* QueryNormalizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41793FD1B88E72CA0E804EA /* QueryNormalizerTests.swift */; };
+		9AACFFE3CC66B353D9ECBCEF /* QueryNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D87949E0F536E99D379D7EA2 /* QueryNormalizer.swift */; };
+		9E53C84100D7EC25644CD44E /* PromptChipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C35D137C372D931B6F63B67 /* PromptChipView.swift */; };
+		A147EF2C189213982502ED70 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 63F8B9771BF99C424A66DDAB /* Assets.xcassets */; };
+		A5196124710E90094E22A469 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A8957E631CF4A75B50EB647 /* UserSettings.swift */; };
+		A761443E00F6A3569F7FCBEE /* ResultCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C810DB39EF95F1843234ABC2 /* ResultCardView.swift */; };
+		A8770A5EC2D74256E12F17A9 /* LocalPersistenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABC20FD4218BDC05EAED81F2 /* LocalPersistenceStore.swift */; };
+		BE08E9FA53923DCE129BD531 /* AlternativeCandidateRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D06124F024EBF7A27F03DB /* AlternativeCandidateRow.swift */; };
+		CAC83224DCCB4EF2A1C92469 /* PercentCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8E0CB44D512592AB3237B95 /* PercentCalculator.swift */; };
+		CC45215EFF9A45A0DDE09ADA /* AppStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0E2C1C940C833B7876834E /* AppStrings.swift */; };
+		CDB0A91759FAA73E8FC1CB43 /* AppNavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F977B912AD14DF3D5754B09 /* AppNavigationState.swift */; };
+		CEFFC67D3FCB2AA001F2F531 /* HistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547D69695C33223070639125 /* HistoryItem.swift */; };
+		D4633EC8451850A348D81042 /* CalculatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5B073A13C061DD15F39F638 /* CalculatorViewModel.swift */; };
+		D8E7731D0C10EFF997FD5D91 /* PercentQueryParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A670B440EBA9EF13760BEA0 /* PercentQueryParserTests.swift */; };
+		E3DED23EF1644717000598EF /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA80EDF886CF960509400CB0 /* RootTabView.swift */; };
+		F210F23604D14188B5D3B822 /* PercentCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19939B0A4B17C2BD150BB5FB /* PercentCalculatorTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5D5585BFEBECFC1D25160007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A887BF5E04D12DE994784C22 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 34133DAED8EC0DD617EEE411;
+			remoteInfo = AskPercent;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		006D2DECBD75D673A0609C70 /* AskPercentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskPercentApp.swift; sourceTree = "<group>"; };
+		0455128204A0E9CD7B53892B /* ParseCandidate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseCandidate.swift; sourceTree = "<group>"; };
+		05D06124F024EBF7A27F03DB /* AlternativeCandidateRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativeCandidateRow.swift; sourceTree = "<group>"; };
+		0820098A49E30F1ACE29DC2C /* CalculationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationResult.swift; sourceTree = "<group>"; };
+		19939B0A4B17C2BD150BB5FB /* PercentCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PercentCalculatorTests.swift; sourceTree = "<group>"; };
+		1F977B912AD14DF3D5754B09 /* AppNavigationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigationState.swift; sourceTree = "<group>"; };
+		23E7BDE4EAFC5AB90FB27A0C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		298EC9031C65E47F5DBDB787 /* AskPercentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AskPercentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C07EF47E2E75870DA7E7F4F /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
+		3683AB582486AC02BD757BE5 /* UserSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsTests.swift; sourceTree = "<group>"; };
+		3C35D137C372D931B6F63B67 /* PromptChipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptChipView.swift; sourceTree = "<group>"; };
+		547D69695C33223070639125 /* HistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryItem.swift; sourceTree = "<group>"; };
+		63F8B9771BF99C424A66DDAB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6A670B440EBA9EF13760BEA0 /* PercentQueryParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PercentQueryParserTests.swift; sourceTree = "<group>"; };
+		6CF9B539A4E80DA591160807 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		703ED62224EECC45EE55027E /* FavoriteItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteItem.swift; sourceTree = "<group>"; };
+		734F5DFAC6FD3EDB24690B94 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		775F34E122B5BA682A110CC6 /* PercentQueryParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PercentQueryParser.swift; sourceTree = "<group>"; };
+		7A8957E631CF4A75B50EB647 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		8AF108062169F7E487D6ED5F /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		A2A08900326F9B1495B3843C /* DisplayFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayFormatter.swift; sourceTree = "<group>"; };
+		A2C1CE9B02E3047A4837E0ED /* CalculationIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationIntent.swift; sourceTree = "<group>"; };
+		AA80EDF886CF960509400CB0 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		ABC20FD4218BDC05EAED81F2 /* LocalPersistenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalPersistenceStore.swift; sourceTree = "<group>"; };
+		B8E0CB44D512592AB3237B95 /* PercentCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PercentCalculator.swift; sourceTree = "<group>"; };
+		BE0E2C1C940C833B7876834E /* AppStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStrings.swift; sourceTree = "<group>"; };
+		C810DB39EF95F1843234ABC2 /* ResultCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultCardView.swift; sourceTree = "<group>"; };
+		D41793FD1B88E72CA0E804EA /* QueryNormalizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryNormalizerTests.swift; sourceTree = "<group>"; };
+		D5B073A13C061DD15F39F638 /* CalculatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorViewModel.swift; sourceTree = "<group>"; };
+		D87949E0F536E99D379D7EA2 /* QueryNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryNormalizer.swift; sourceTree = "<group>"; };
+		D98786575634CEC0EF9CEB55 /* AskPercent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AskPercent.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FFA3A3FC749528B051330807 /* CandidateRankingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandidateRankingTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		15F0DC5AB2F561170F6F674E /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2C07EF47E2E75870DA7E7F4F /* FavoritesView.swift */,
+				6CF9B539A4E80DA591160807 /* HistoryView.swift */,
+				8AF108062169F7E487D6ED5F /* HomeView.swift */,
+				AA80EDF886CF960509400CB0 /* RootTabView.swift */,
+				23E7BDE4EAFC5AB90FB27A0C /* SettingsView.swift */,
+			);
+			name = Views;
+			path = AskPercent/Views;
+			sourceTree = "<group>";
+		};
+		678B2F609D56D9AAA84584B2 /* Parsing */ = {
+			isa = PBXGroup;
+			children = (
+				775F34E122B5BA682A110CC6 /* PercentQueryParser.swift */,
+				D87949E0F536E99D379D7EA2 /* QueryNormalizer.swift */,
+			);
+			name = Parsing;
+			path = AskPercent/Parsing;
+			sourceTree = "<group>";
+		};
+		7B5855FD0AE4C88A01C02DD8 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				D5B073A13C061DD15F39F638 /* CalculatorViewModel.swift */,
+			);
+			name = ViewModels;
+			path = AskPercent/ViewModels;
+			sourceTree = "<group>";
+		};
+		9F30C84F58EFE59259910322 = {
+			isa = PBXGroup;
+			children = (
+				D117AFDFB40582101CC77362 /* App */,
+				D809E950AE7EF94154D2B99D /* Components */,
+				A89FC989AA58D29023E061B4 /* Engine */,
+				B4D8D4ADC3531CB394C0ACD1 /* Models */,
+				678B2F609D56D9AAA84584B2 /* Parsing */,
+				C2A1D98CF1875C8442D6A6B0 /* Persistence */,
+				B284011133BE018955D6EB8B /* Resources */,
+				BCEB0F64F764629E2478212D /* Tests */,
+				E2295A89081CA1B339A41C3A /* Utilities */,
+				7B5855FD0AE4C88A01C02DD8 /* ViewModels */,
+				15F0DC5AB2F561170F6F674E /* Views */,
+				C38BFCD70900F156270089DB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A89FC989AA58D29023E061B4 /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				B8E0CB44D512592AB3237B95 /* PercentCalculator.swift */,
+			);
+			name = Engine;
+			path = AskPercent/Engine;
+			sourceTree = "<group>";
+		};
+		B284011133BE018955D6EB8B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				63F8B9771BF99C424A66DDAB /* Assets.xcassets */,
+			);
+			name = Resources;
+			path = AskPercent/Resources;
+			sourceTree = "<group>";
+		};
+		B4D8D4ADC3531CB394C0ACD1 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				1F977B912AD14DF3D5754B09 /* AppNavigationState.swift */,
+				A2C1CE9B02E3047A4837E0ED /* CalculationIntent.swift */,
+				0820098A49E30F1ACE29DC2C /* CalculationResult.swift */,
+				703ED62224EECC45EE55027E /* FavoriteItem.swift */,
+				547D69695C33223070639125 /* HistoryItem.swift */,
+				0455128204A0E9CD7B53892B /* ParseCandidate.swift */,
+				7A8957E631CF4A75B50EB647 /* UserSettings.swift */,
+			);
+			name = Models;
+			path = AskPercent/Models;
+			sourceTree = "<group>";
+		};
+		BCEB0F64F764629E2478212D /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				FFA3A3FC749528B051330807 /* CandidateRankingTests.swift */,
+				19939B0A4B17C2BD150BB5FB /* PercentCalculatorTests.swift */,
+				6A670B440EBA9EF13760BEA0 /* PercentQueryParserTests.swift */,
+				D41793FD1B88E72CA0E804EA /* QueryNormalizerTests.swift */,
+				3683AB582486AC02BD757BE5 /* UserSettingsTests.swift */,
+			);
+			name = Tests;
+			path = AskPercent/Tests;
+			sourceTree = "<group>";
+		};
+		C2A1D98CF1875C8442D6A6B0 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				ABC20FD4218BDC05EAED81F2 /* LocalPersistenceStore.swift */,
+			);
+			name = Persistence;
+			path = AskPercent/Persistence;
+			sourceTree = "<group>";
+		};
+		C38BFCD70900F156270089DB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D98786575634CEC0EF9CEB55 /* AskPercent.app */,
+				298EC9031C65E47F5DBDB787 /* AskPercentTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D117AFDFB40582101CC77362 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				006D2DECBD75D673A0609C70 /* AskPercentApp.swift */,
+				734F5DFAC6FD3EDB24690B94 /* Info.plist */,
+			);
+			name = App;
+			path = AskPercent/App;
+			sourceTree = "<group>";
+		};
+		D809E950AE7EF94154D2B99D /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				05D06124F024EBF7A27F03DB /* AlternativeCandidateRow.swift */,
+				3C35D137C372D931B6F63B67 /* PromptChipView.swift */,
+				C810DB39EF95F1843234ABC2 /* ResultCardView.swift */,
+			);
+			name = Components;
+			path = AskPercent/Components;
+			sourceTree = "<group>";
+		};
+		E2295A89081CA1B339A41C3A /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				BE0E2C1C940C833B7876834E /* AppStrings.swift */,
+				A2A08900326F9B1495B3843C /* DisplayFormatter.swift */,
+			);
+			name = Utilities;
+			path = AskPercent/Utilities;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		34133DAED8EC0DD617EEE411 /* AskPercent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DD6BF439FCC262B539A35695 /* Build configuration list for PBXNativeTarget "AskPercent" */;
+			buildPhases = (
+				07E0B3CE319AE877AC859583 /* Sources */,
+				87AAC785BC23CF678E3AFB2A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AskPercent;
+			packageProductDependencies = (
+			);
+			productName = AskPercent;
+			productReference = D98786575634CEC0EF9CEB55 /* AskPercent.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CC0B371CF050E495CAB2950C /* AskPercentTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8301E7E74F988043BA2BE5D0 /* Build configuration list for PBXNativeTarget "AskPercentTests" */;
+			buildPhases = (
+				8065C7E713C3202921CC77A7 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F5D2E7A0B64A913DF1C4EBA4 /* PBXTargetDependency */,
+			);
+			name = AskPercentTests;
+			packageProductDependencies = (
+			);
+			productName = AskPercentTests;
+			productReference = 298EC9031C65E47F5DBDB787 /* AskPercentTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A887BF5E04D12DE994784C22 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2630;
+			};
+			buildConfigurationList = 8A9CB1AF3540FF206FAC9910 /* Build configuration list for PBXProject "AskPercent" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 9F30C84F58EFE59259910322;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = C38BFCD70900F156270089DB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				34133DAED8EC0DD617EEE411 /* AskPercent */,
+				CC0B371CF050E495CAB2950C /* AskPercentTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		87AAC785BC23CF678E3AFB2A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A147EF2C189213982502ED70 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		07E0B3CE319AE877AC859583 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE08E9FA53923DCE129BD531 /* AlternativeCandidateRow.swift in Sources */,
+				CDB0A91759FAA73E8FC1CB43 /* AppNavigationState.swift in Sources */,
+				CC45215EFF9A45A0DDE09ADA /* AppStrings.swift in Sources */,
+				0EF745D5951ED9DC39884D26 /* AskPercentApp.swift in Sources */,
+				02FF55C631A0C3A6875ED1E7 /* CalculationIntent.swift in Sources */,
+				065C8882B74A187D2DCB6FBF /* CalculationResult.swift in Sources */,
+				D4633EC8451850A348D81042 /* CalculatorViewModel.swift in Sources */,
+				14065115A281781EC46767E3 /* DisplayFormatter.swift in Sources */,
+				230B57882296AFFF1E6C7507 /* FavoriteItem.swift in Sources */,
+				326466CFAD4866180EE79E68 /* FavoritesView.swift in Sources */,
+				CEFFC67D3FCB2AA001F2F531 /* HistoryItem.swift in Sources */,
+				74738FAEC70B226B3B108376 /* HistoryView.swift in Sources */,
+				59DE73D1348850589CFB85BD /* HomeView.swift in Sources */,
+				A8770A5EC2D74256E12F17A9 /* LocalPersistenceStore.swift in Sources */,
+				6008CFFF7F2868E33431E0C1 /* ParseCandidate.swift in Sources */,
+				CAC83224DCCB4EF2A1C92469 /* PercentCalculator.swift in Sources */,
+				3CF14366EEB2EA997D804463 /* PercentQueryParser.swift in Sources */,
+				9E53C84100D7EC25644CD44E /* PromptChipView.swift in Sources */,
+				9AACFFE3CC66B353D9ECBCEF /* QueryNormalizer.swift in Sources */,
+				A761443E00F6A3569F7FCBEE /* ResultCardView.swift in Sources */,
+				E3DED23EF1644717000598EF /* RootTabView.swift in Sources */,
+				2DD87D3FD1344226C3253638 /* SettingsView.swift in Sources */,
+				A5196124710E90094E22A469 /* UserSettings.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8065C7E713C3202921CC77A7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0FCDC0E3D884B9FB6B679165 /* CandidateRankingTests.swift in Sources */,
+				F210F23604D14188B5D3B822 /* PercentCalculatorTests.swift in Sources */,
+				D8E7731D0C10EFF997FD5D91 /* PercentQueryParserTests.swift in Sources */,
+				82177A7718B42BEE17712BD5 /* QueryNormalizerTests.swift in Sources */,
+				7F96131A6F50C2A2AC31B7CA /* UserSettingsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F5D2E7A0B64A913DF1C4EBA4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 34133DAED8EC0DD617EEE411 /* AskPercent */;
+			targetProxy = 5D5585BFEBECFC1D25160007 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		099184CF4DB0839799369FB5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.1;
+			};
+			name = Release;
+		};
+		250AC382B0F88A35B3DA9413 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = BB4MFJBDC7;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.askpercent.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AskPercent.app/AskPercent";
+			};
+			name = Release;
+		};
+		4B7DA2A3A4295B40CF1332CE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.1;
+			};
+			name = Debug;
+		};
+		4CC5D68E42E8844C75B9E3B5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BB4MFJBDC7;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AskPercent/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.askpercent.app;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		969220FDD7AE0D972B370497 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = BB4MFJBDC7;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.askpercent.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AskPercent.app/AskPercent";
+			};
+			name = Debug;
+		};
+		FD0CA61DFCE487E0D14A7C89 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BB4MFJBDC7;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AskPercent/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.askpercent.app;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8301E7E74F988043BA2BE5D0 /* Build configuration list for PBXNativeTarget "AskPercentTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				969220FDD7AE0D972B370497 /* Debug */,
+				250AC382B0F88A35B3DA9413 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8A9CB1AF3540FF206FAC9910 /* Build configuration list for PBXProject "AskPercent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4B7DA2A3A4295B40CF1332CE /* Debug */,
+				099184CF4DB0839799369FB5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DD6BF439FCC262B539A35695 /* Build configuration list for PBXNativeTarget "AskPercent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4CC5D68E42E8844C75B9E3B5 /* Debug */,
+				FD0CA61DFCE487E0D14A7C89 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A887BF5E04D12DE994784C22 /* Project object */;
+}

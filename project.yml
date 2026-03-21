@@ -1,0 +1,67 @@
+name: AskPercent
+options:
+  bundleIdPrefix: com.askpercent
+  minimumXcodeGenVersion: 2.38.0
+  xcodeVersion: "26.3"
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+    DEVELOPMENT_TEAM: ""
+packages: {}
+targets:
+  AskPercent:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: AskPercent/App
+      - path: AskPercent/Models
+      - path: AskPercent/Parsing
+      - path: AskPercent/Engine
+      - path: AskPercent/Persistence
+      - path: AskPercent/ViewModels
+      - path: AskPercent/Views
+      - path: AskPercent/Components
+      - path: AskPercent/Utilities
+      - path: AskPercent/Resources
+    info:
+      path: AskPercent/App/Info.plist
+      properties:
+        CFBundleDisplayName: AskPercent
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.askpercent.app
+        MARKETING_VERSION: 1.0
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: AskPercent/App/Info.plist
+        IPHONEOS_DEPLOYMENT_TARGET: 17.0
+        TARGETED_DEVICE_FAMILY: 1
+        SUPPORTS_MACCATALYST: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    preBuildScripts: []
+    postCompileScripts: []
+
+  AskPercentTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: AskPercent/Tests
+    dependencies:
+      - target: AskPercent
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.askpercent.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  AskPercent:
+    build:
+      targets:
+        AskPercent: all
+        AskPercentTests: [test]
+    test:
+      targets:
+        - AskPercentTests

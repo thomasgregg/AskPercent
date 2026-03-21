@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AskPercent Support</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f2f2f7;
+        --card: #ffffff;
+        --text: #111111;
+        --muted: #5f6368;
+        --accent: #0a84ff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --card: #1c1c1e;
+          --text: #f5f5f7;
+          --muted: #a1a1aa;
+          --accent: #0a84ff;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+          Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 48px 20px 60px;
+      }
+      .card {
+        background: var(--card);
+        border-radius: 18px;
+        padding: 28px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 4vw, 3rem);
+      }
+      h2 {
+        margin: 20px 0 8px;
+      }
+      p,
+      li {
+        line-height: 1.5;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      a {
+        color: var(--accent);
+      }
+      .lang {
+        margin-top: 24px;
+        padding-top: 18px;
+        border-top: 1px solid color-mix(in oklab, var(--muted) 30%, transparent);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <h1>AskPercent Support</h1>
+        <p class="muted">We are happy to help with bugs, questions, and feedback.</p>
+
+        <h2>Contact</h2>
+        <ul>
+          <li>
+            GitHub issues:
+            <a href="https://github.com/thomasgregg/AskPercent/issues"
+              >github.com/thomasgregg/AskPercent/issues</a
+            >
+          </li>
+        </ul>
+
+        <h2>What to include in your report</h2>
+        <ul>
+          <li>Your iPhone model and iOS version</li>
+          <li>The exact question you typed</li>
+          <li>Expected result vs actual result</li>
+          <li>Screenshot (if possible)</li>
+        </ul>
+
+        <p>
+          Privacy details are available at
+          <a href="./privacy.html">the privacy policy page</a>.
+        </p>
+
+        <div class="lang">
+          <h2>Support (Deutsch)</h2>
+          <p class="muted">Wir helfen gern bei Fehlern, Fragen und Feedback.</p>
+          <ul>
+            <li>
+              GitHub-Issues:
+              <a href="https://github.com/thomasgregg/AskPercent/issues"
+                >github.com/thomasgregg/AskPercent/issues</a
+              >
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
