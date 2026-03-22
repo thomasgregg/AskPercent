@@ -384,9 +384,9 @@ struct AppStrings {
     var parseFailureTaxPresetMissing: String {
         switch language {
         case .english:
-            return "Write '100 minus 19% tax' or enable Tax preset in Settings."
+            return "Add a tax rate, e.g. '100 + 19% tax' or '100 - 19% tax', or enable Tax preset in Settings."
         case .german:
-            return "Schreibe z. B. '100 minus 19% Steuer' oder aktiviere das Steuer-Preset in den Einstellungen."
+            return "Füge einen Steuersatz hinzu, z. B. '100 + 19% Steuer' oder '100 - 19% Steuer', oder aktiviere das Steuer-Preset in den Einstellungen."
         }
     }
 

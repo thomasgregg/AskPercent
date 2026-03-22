@@ -86,6 +86,33 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertEqual(outcome.candidates.first?.intent.type, .discountPercent)
     }
 
+    func testEnglishDiscountFromToPhrase() throws {
+        let outcome = parser.parse("what is the discount from 179 to 134")
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .discountPercent)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected discount candidate for explicit discount from-to phrase")
+        }
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 25.139_664, accuracy: 0.000_01)
+    }
+
+    func testEnglishDiscountRatePhrases() throws {
+        let withDiscount = parser.parse("100 with 20% discount")
+        XCTAssertEqual(withDiscount.candidates.first?.intent.type, .subtractPercent)
+        guard let withDiscountIntent = withDiscount.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for 'with discount' phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: withDiscountIntent).value, 80, accuracy: 0.000_001)
+
+        let percentFirst = parser.parse("20% discount on 100")
+        XCTAssertEqual(percentFirst.candidates.first?.intent.type, .subtractPercent)
+        guard let percentFirstIntent = percentFirst.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for percent-first discount phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: percentFirstIntent).value, 80, accuracy: 0.000_001)
+    }
+
     func testTopIntentReversePercent() {
         let outcome = parser.parse("if 30% is 45 what is 100%")
         XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
@@ -339,6 +366,22 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertEqual(parser.parse("what markup is 40 on cost of 120").candidates.first?.intent.type, .markup)
     }
 
+    func testEnglishMarkupRatePhrases() throws {
+        let withMarkup = parser.parse("100 with 20% markup")
+        XCTAssertEqual(withMarkup.candidates.first?.intent.type, .addPercent)
+        guard let withMarkupIntent = withMarkup.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for 'with markup' phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: withMarkupIntent).value, 120, accuracy: 0.000_001)
+
+        let percentFirst = parser.parse("20% markup on 100")
+        XCTAssertEqual(percentFirst.candidates.first?.intent.type, .addPercent)
+        guard let percentFirstIntent = percentFirst.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for percent-first markup phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: percentFirstIntent).value, 120, accuracy: 0.000_001)
+    }
+
     func testEnglishProfitPhraseMapsToMargin() {
         XCTAssertEqual(parser.parse("what is profit 40 on 120").candidates.first?.intent.type, .margin)
     }
@@ -454,6 +497,33 @@ final class PercentQueryParserTests: XCTestCase {
         }
         let result = try calculator.calculate(intent: intent)
         XCTAssertEqual(result.value, 25.139_664, accuracy: 0.000_01)
+    }
+
+    func testGermanRabattVonAufPhrase() throws {
+        let outcome = parser.parse("wie hoch ist der rabatt von 179 auf 134")
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .discountPercent)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected discount candidate for explicit rabatt-von-auf phrase")
+        }
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 25.139_664, accuracy: 0.000_01)
+    }
+
+    func testGermanDiscountRatePhrases() throws {
+        let mitRabatt = parser.parse("100 mit 20% rabatt")
+        XCTAssertEqual(mitRabatt.candidates.first?.intent.type, .subtractPercent)
+        guard let mitRabattIntent = mitRabatt.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for German rabatt phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: mitRabattIntent).value, 80, accuracy: 0.000_001)
+
+        let percentFirst = parser.parse("20% rabatt auf 100")
+        XCTAssertEqual(percentFirst.candidates.first?.intent.type, .subtractPercent)
+        guard let percentFirstIntent = percentFirst.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for German percent-first rabatt phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: percentFirstIntent).value, 80, accuracy: 0.000_001)
     }
 
     func testGermanReversePercent() throws {
@@ -586,6 +656,22 @@ final class PercentQueryParserTests: XCTestCase {
 
     func testGermanMarkupWithKostenVonPhrase() {
         XCTAssertEqual(parser.parse("was ist der aufschlag 40 auf kosten von 120").candidates.first?.intent.type, .markup)
+    }
+
+    func testGermanAufschlagRatePhrases() throws {
+        let mitAufschlag = parser.parse("100 mit 20% aufschlag")
+        XCTAssertEqual(mitAufschlag.candidates.first?.intent.type, .addPercent)
+        guard let mitAufschlagIntent = mitAufschlag.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for German aufschlag phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: mitAufschlagIntent).value, 120, accuracy: 0.000_001)
+
+        let percentFirst = parser.parse("20% aufschlag auf 100")
+        XCTAssertEqual(percentFirst.candidates.first?.intent.type, .addPercent)
+        guard let percentFirstIntent = percentFirst.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for German percent-first aufschlag phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: percentFirstIntent).value, 120, accuracy: 0.000_001)
     }
 
     func testGermanGewinnPhraseMapsToMargin() {

@@ -65,7 +65,7 @@ struct HomeView: View {
                     if viewModel.isAmbiguous, !viewModel.alternatives.isEmpty {
                         ambiguitySection
                     }
-                } else {
+                } else if viewModel.parseFailureMessage == nil {
                     emptyState
                 }
 

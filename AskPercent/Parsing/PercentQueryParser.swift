@@ -52,6 +52,8 @@ final class PercentQueryParser {
 
         var candidates = [ParseCandidate]()
         candidates.append(contentsOf: parseTipTaxVat(in: normalized))
+        candidates.append(contentsOf: parseDiscountRate(in: normalized))
+        candidates.append(contentsOf: parseMarkupRate(in: normalized))
         candidates.append(contentsOf: parseFinancialTaxContext(in: normalized))
         candidates.append(contentsOf: parseTaxPresetNoRate(in: normalized))
         candidates.append(contentsOf: parsePercentOf(in: normalized))
@@ -141,7 +143,7 @@ final class PercentQueryParser {
     }
 
     private func parseAddPercent(in text: String) -> [ParseCandidate] {
-        let excludedKindsPattern = #"(?:tip|tax|sales\s*tax|vat|gst|iva|trinkgeld|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
+        let excludedKindsPattern = #"(?:tip|tax|sales\s*tax|vat|gst|iva|trinkgeld|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?|discount|rabatt)"#
         let connectorPattern = #"(?:plus|add|added|with|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
         let wordPattern = #"\b"# + numberCapture + #"\s*"# + connectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?!\s*"# + excludedKindsPattern + #")"#
         let symbolPattern = #"\b"# + numberCapture + #"\s*\+\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?!\s*"# + excludedKindsPattern + #")"#
@@ -175,6 +177,84 @@ final class PercentQueryParser {
         }
 
         return wordCandidates + symbolCandidates
+    }
+
+    private func parseDiscountRate(in text: String) -> [ParseCandidate] {
+        let discountKeywordPattern = #"(?:discount|rabatt)"#
+        let baseFirstConnectorPattern = #"(?:with|plus|including|incl(?:uding)?|less|minus|mit|inkl(?:usive)?|abzüglich|abzueglich)"#
+        let relationConnectorPattern = #"(?:on|off|from|of|auf|von)"#
+
+        let baseFirstPattern = #"\b"# + numberCapture + #"\s*"# + baseFirstConnectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + discountKeywordPattern + #"\b"#
+        let percentFirstPattern = #"\b"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + discountKeywordPattern + #"\s*"# + relationConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+        let keywordFirstPattern = #"\b"# + discountKeywordPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + relationConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+
+        let baseFirstCandidates = captures(baseFirstPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let base = double(capture[0]), let percent = double(capture[1]) else { return nil }
+            return ParseCandidate(
+                intent: .subtractPercent(base: base, percent: percent),
+                confidence: 0.98,
+                interpretation: "\(base) with \(percent)% discount"
+            )
+        }
+
+        let percentFirstCandidates = captures(percentFirstPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let percent = double(capture[0]), let base = double(capture[1]) else { return nil }
+            return ParseCandidate(
+                intent: .subtractPercent(base: base, percent: percent),
+                confidence: 0.98,
+                interpretation: "\(percent)% discount on \(base)"
+            )
+        }
+
+        let keywordFirstCandidates = captures(keywordFirstPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let percent = double(capture[1]), let base = double(capture[2]) else { return nil }
+            return ParseCandidate(
+                intent: .subtractPercent(base: base, percent: percent),
+                confidence: 0.98,
+                interpretation: "\(percent)% discount on \(base)"
+            )
+        }
+
+        return baseFirstCandidates + percentFirstCandidates + keywordFirstCandidates
+    }
+
+    private func parseMarkupRate(in text: String) -> [ParseCandidate] {
+        let markupKeywordPattern = #"(?:markup|aufschlag)"#
+        let baseFirstConnectorPattern = #"(?:with|plus|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
+        let relationConnectorPattern = #"(?:on|of|auf|von)"#
+
+        let baseFirstPattern = #"\b"# + numberCapture + #"\s*"# + baseFirstConnectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + markupKeywordPattern + #"\b"#
+        let percentFirstPattern = #"\b"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + markupKeywordPattern + #"\s*"# + relationConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+        let keywordFirstPattern = #"\b"# + markupKeywordPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + relationConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+
+        let baseFirstCandidates = captures(baseFirstPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let base = double(capture[0]), let percent = double(capture[1]) else { return nil }
+            return ParseCandidate(
+                intent: .addPercent(base: base, percent: percent),
+                confidence: 0.98,
+                interpretation: "\(base) with \(percent)% markup"
+            )
+        }
+
+        let percentFirstCandidates = captures(percentFirstPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let percent = double(capture[0]), let base = double(capture[1]) else { return nil }
+            return ParseCandidate(
+                intent: .addPercent(base: base, percent: percent),
+                confidence: 0.98,
+                interpretation: "\(percent)% markup on \(base)"
+            )
+        }
+
+        let keywordFirstCandidates = captures(keywordFirstPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard let percent = double(capture[1]), let base = double(capture[2]) else { return nil }
+            return ParseCandidate(
+                intent: .addPercent(base: base, percent: percent),
+                confidence: 0.98,
+                interpretation: "\(percent)% markup on \(base)"
+            )
+        }
+
+        return baseFirstCandidates + percentFirstCandidates + keywordFirstCandidates
     }
 
     private func parseSubtractPercent(in text: String) -> [ParseCandidate] {
@@ -363,7 +443,10 @@ final class PercentQueryParser {
 
     private func parseDiscount(in text: String) -> [ParseCandidate] {
         let englishPattern = #"\b(?:i\s+)?(?:paid\s+)?"# + numberCapture + #"\s+instead\s+of\s+"# + numberCapture + #"\b"#
+        let englishDiscountFromToPattern = #"\b(?:what\s+(?:is|s)\s+(?:the\s+)?)?discount\s+(?:from\s+)?"# + numberCapture + #"\s+(?:to|down\s+to)\s+"# + numberCapture + #"\b"#
+        let englishDiscountNewFromOriginalPattern = #"\b(?:what\s+(?:is|s)\s+(?:the\s+)?)?discount\s+"# + numberCapture + #"\s+from\s+"# + numberCapture + #"\b"#
         let germanPattern = #"\b(?:ich\s+)?(?:habe\s+)?(?:bezahlt\s+)?"# + numberCapture + #"\s+(?:statt|anstatt)\s+"# + numberCapture + #"\b"#
+        let germanRabattVonAufPattern = #"\b(?:wie\s+(?:hoch|viel)\s+ist\s+(?:der\s+)?)?rabatt\s+von\s+"# + numberCapture + #"\s+auf\s+"# + numberCapture + #"\b"#
 
         let english = captures(englishPattern, in: text).compactMap { capture -> ParseCandidate? in
             guard
@@ -374,6 +457,32 @@ final class PercentQueryParser {
             return ParseCandidate(
                 intent: .discountPercent(original: original, new: newValue),
                 confidence: text.contains("discount") ? 0.99 : 0.94,
+                interpretation: "discount from \(original) to \(newValue)"
+            )
+        }
+
+        let englishFromTo = captures(englishDiscountFromToPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let original = double(capture[0]),
+                let newValue = double(capture[1])
+            else { return nil }
+
+            return ParseCandidate(
+                intent: .discountPercent(original: original, new: newValue),
+                confidence: 0.99,
+                interpretation: "discount from \(original) to \(newValue)"
+            )
+        }
+
+        let englishNewFromOriginal = captures(englishDiscountNewFromOriginalPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let newValue = double(capture[0]),
+                let original = double(capture[1])
+            else { return nil }
+
+            return ParseCandidate(
+                intent: .discountPercent(original: original, new: newValue),
+                confidence: 0.98,
                 interpretation: "discount from \(original) to \(newValue)"
             )
         }
@@ -391,7 +500,20 @@ final class PercentQueryParser {
             )
         }
 
-        return english + german
+        let germanRabattVonAuf = captures(germanRabattVonAufPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let original = double(capture[0]),
+                let newValue = double(capture[1])
+            else { return nil }
+
+            return ParseCandidate(
+                intent: .discountPercent(original: original, new: newValue),
+                confidence: 0.98,
+                interpretation: "rabatt von \(original) auf \(newValue)"
+            )
+        }
+
+        return english + englishFromTo + englishNewFromOriginal + german + germanRabattVonAuf
     }
 
     private func parseReversePercent(in text: String) -> [ParseCandidate] {

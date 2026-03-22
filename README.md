@@ -10,6 +10,7 @@ AskPercent is a native iOS SwiftUI MVP for deterministic natural-language percen
 - Number format setting: `System`, `US`, `European`
 - Live debounced parsing + result updates
 - Ambiguity handling with ranked alternative interpretations
+- Context-aware parse guidance (e.g. tax preset hints for plain `tax` words) without showing generic empty-state examples at the same time
 - Home input quality-of-life:
   - autofocus when app opens / returning to Home
   - trailing clear `x` button
@@ -76,6 +77,12 @@ Use these directly in the input field.
 - Discount percent:
   - EN: `I paid 134 instead of 179, what percent discount is that?`
   - DE: `ich habe 134 statt 179 bezahlt`
+- Discount rate applied to a base:
+  - EN: `100 with 20% discount`, `20% discount on 100`
+  - DE: `100 mit 20% rabatt`, `20% rabatt auf 100`
+- Discount between original and new value:
+  - EN: `what is the discount from 179 to 134`
+  - DE: `wie hoch ist der rabatt von 179 auf 134`
 - What percent is X of Y (relation):
   - EN: `41.75 is what percent of 167`, `100 of 200`
   - DE: `41,75 sind wie viel prozent von 167`, `100 von 200`
@@ -103,6 +110,9 @@ Use these directly in the input field.
 - Margin and markup:
   - EN: `what margin is 40 on 120`, `what is the margin 40 on 120`, `what markup is 40 on cost 120`, `what is profit 40 on 120`
   - DE: `was ist die marge 40 auf 120`, `was ist der aufschlag 40 auf kosten 120`, `was ist der gewinn von 40 auf 120`
+- Markup/Aufschlag rate applied to a base:
+  - EN: `100 with 20% markup`, `20% markup on 100`
+  - DE: `100 mit 20% aufschlag`, `20% aufschlag auf 100`
 - Margin/profit amount phrasing:
   - EN: `how much is 10% margin on 134`, `how much is 10% profit on 134`, `what is 10% profit of 230`
   - DE: `wie viel sind 10% marge auf 134`, `was ist 10% gewinn von 230`
@@ -156,6 +166,8 @@ Current test coverage includes:
   - target-part-to-percent output (`if 40 is 10% what is 50`)
 - increase/decrease-by phrasing
 - now/then phrasing variants
+- discount/rabatt phrasing variants (rate and from-to forms)
+- markup/aufschlag rate phrasing variants
 - formula correctness
 - divide-by-zero edge cases
 
