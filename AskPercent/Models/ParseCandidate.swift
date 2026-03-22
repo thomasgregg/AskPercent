@@ -2,6 +2,7 @@ import Foundation
 
 enum ParseFailureReason: Equatable {
     case numbersMissing
+    case taxPresetMissing
     case lowConfidence
 }
 

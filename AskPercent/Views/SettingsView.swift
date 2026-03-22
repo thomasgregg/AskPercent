@@ -40,6 +40,25 @@ struct SettingsView: View {
                     Toggle(strings.settingsHapticsLabel, isOn: hapticsBinding)
                 }
 
+                Section(strings.settingsTaxSection) {
+                    Toggle(strings.settingsTaxPresetToggleLabel, isOn: taxPresetEnabledBinding)
+
+                    if store.settings.taxPresetEnabled {
+                        Stepper(value: taxPresetPercentBinding, in: 0...100, step: 0.5) {
+                            HStack {
+                                Text(strings.settingsTaxPresetPercentLabel)
+                                Spacer()
+                                Text(DisplayFormatter.percent(
+                                    store.settings.taxPresetPercent,
+                                    precision: 1,
+                                    locale: store.settings.numberFormatStyle.locale
+                                ))
+                                .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+
                 Section(strings.settingsDataSection) {
                     Button(strings.settingsClearHistoryButton, role: .destructive) {
                         showClearHistoryAlert = true
@@ -102,6 +121,20 @@ struct SettingsView: View {
         Binding(
             get: { store.settings.numberFormatStyle },
             set: { store.settings.numberFormatStyle = $0 }
+        )
+    }
+
+    private var taxPresetEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { store.settings.taxPresetEnabled },
+            set: { store.settings.taxPresetEnabled = $0 }
+        )
+    }
+
+    private var taxPresetPercentBinding: Binding<Double> {
+        Binding(
+            get: { store.settings.taxPresetPercent },
+            set: { store.settings.taxPresetPercent = min(max($0, 0), 100) }
         )
     }
 }

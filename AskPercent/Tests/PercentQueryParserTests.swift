@@ -229,6 +229,102 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertEqual(outcome.candidates.first?.intent.type, .vat)
     }
 
+    func testEnglishFinancialTaxContextPhrases() throws {
+        let netVat = parser.parse("100 net plus 19% vat")
+        XCTAssertEqual(netVat.candidates.first?.intent.type, .vat)
+        guard let netVatIntent = netVat.candidates.first?.intent else {
+            return XCTFail("Expected VAT candidate for net + VAT phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: netVatIntent).value, 119, accuracy: 0.000_001)
+
+        let beforeTax = parser.parse("100 before tax plus 20% tax")
+        XCTAssertEqual(beforeTax.candidates.first?.intent.type, .tax)
+        guard let beforeTaxIntent = beforeTax.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for before-tax phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: beforeTaxIntent).value, 120, accuracy: 0.000_001)
+
+        let afterTaxMinus = parser.parse("120 after tax minus 20% tax")
+        XCTAssertEqual(afterTaxMinus.candidates.first?.intent.type, .subtractPercent)
+        guard let afterTaxMinusIntent = afterTaxMinus.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent candidate for after-tax minus phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: afterTaxMinusIntent).value, 96, accuracy: 0.000_001)
+    }
+
+    func testTaxAbbreviationCoverage() throws {
+        let salesTax = parser.parse("100 plus 7% sales tax")
+        XCTAssertEqual(salesTax.candidates.first?.intent.type, .tax)
+        guard let salesTaxIntent = salesTax.candidates.first?.intent else {
+            return XCTFail("Expected sales tax candidate")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: salesTaxIntent).value, 107, accuracy: 0.000_001)
+
+        let gst = parser.parse("100 plus 7% gst")
+        XCTAssertEqual(gst.candidates.first?.intent.type, .vat)
+        guard let gstIntent = gst.candidates.first?.intent else {
+            return XCTFail("Expected GST candidate")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: gstIntent).value, 107, accuracy: 0.000_001)
+
+        let iva = parser.parse("100 plus 7% iva")
+        XCTAssertEqual(iva.candidates.first?.intent.type, .vat)
+        guard let ivaIntent = iva.candidates.first?.intent else {
+            return XCTFail("Expected IVA candidate")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: ivaIntent).value, 107, accuracy: 0.000_001)
+    }
+
+    func testTaxPresetWithoutExplicitRateEnglish() throws {
+        let presetParser = PercentQueryParser(defaultTaxPercent: 19)
+
+        let plusTax = presetParser.parse("100 plus tax")
+        XCTAssertEqual(plusTax.candidates.first?.intent.type, .tax)
+        guard let plusTaxIntent = plusTax.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: plusTaxIntent).value, 119, accuracy: 0.000_001)
+
+        let minusTax = presetParser.parse("100 minus tax")
+        XCTAssertEqual(minusTax.candidates.first?.intent.type, .subtractPercent)
+        guard let minusTaxIntent = minusTax.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent candidate using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: minusTaxIntent).value, 81, accuracy: 0.000_001)
+
+        let incVat = presetParser.parse("100 inc vat")
+        XCTAssertEqual(incVat.candidates.first?.intent.type, .vat)
+        guard let incVatIntent = incVat.candidates.first?.intent else {
+            return XCTFail("Expected VAT candidate for inc VAT using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: incVatIntent).value, 119, accuracy: 0.000_001)
+    }
+
+    func testTaxPresetWithoutExplicitRateGerman() throws {
+        let presetParser = PercentQueryParser(defaultTaxPercent: 19)
+
+        let plusMwst = presetParser.parse("100 zzgl mwst")
+        XCTAssertEqual(plusMwst.candidates.first?.intent.type, .vat)
+        guard let plusMwstIntent = plusMwst.candidates.first?.intent else {
+            return XCTFail("Expected VAT candidate using preset for German query")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: plusMwstIntent).value, 119, accuracy: 0.000_001)
+
+        let minusSteuer = presetParser.parse("120 brutto ohne steuer")
+        XCTAssertEqual(minusSteuer.candidates.first?.intent.type, .subtractPercent)
+        guard let minusSteuerIntent = minusSteuer.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent candidate using preset for German query")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: minusSteuerIntent).value, 97.2, accuracy: 0.000_001)
+    }
+
+    func testTaxWordWithoutPresetDoesNotInferRate() {
+        let noPresetParser = PercentQueryParser(defaultTaxPercent: nil)
+        let outcome = noPresetParser.parse("100 plus tax")
+        XCTAssertTrue(outcome.candidates.isEmpty)
+        XCTAssertEqual(outcome.failureReason, .taxPresetMissing)
+    }
+
     func testTopIntentMarginAndMarkup() {
         XCTAssertEqual(parser.parse("what margin is 40 on 120").candidates.first?.intent.type, .margin)
         XCTAssertEqual(parser.parse("what markup is 40 on cost 120").candidates.first?.intent.type, .markup)
@@ -453,6 +549,29 @@ final class PercentQueryParserTests: XCTestCase {
     func testGermanTipAndVat() {
         XCTAssertEqual(parser.parse("240 mit 15% trinkgeld").candidates.first?.intent.type, .tip)
         XCTAssertEqual(parser.parse("85 plus 19% mwst").candidates.first?.intent.type, .vat)
+    }
+
+    func testGermanFinancialTaxContextPhrases() throws {
+        let nettoUst = parser.parse("100 netto zzgl 19% ust")
+        XCTAssertEqual(nettoUst.candidates.first?.intent.type, .vat)
+        guard let nettoUstIntent = nettoUst.candidates.first?.intent else {
+            return XCTFail("Expected VAT candidate for netto + USt phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: nettoUstIntent).value, 119, accuracy: 0.000_001)
+
+        let vorSteuer = parser.parse("100 vor steuer plus 10% steuer")
+        XCTAssertEqual(vorSteuer.candidates.first?.intent.type, .tax)
+        guard let vorSteuerIntent = vorSteuer.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for vor steuer phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: vorSteuerIntent).value, 110, accuracy: 0.000_001)
+
+        let bruttoMinus = parser.parse("120 brutto minus 20% steuer")
+        XCTAssertEqual(bruttoMinus.candidates.first?.intent.type, .subtractPercent)
+        guard let bruttoMinusIntent = bruttoMinus.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent candidate for brutto minus phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: bruttoMinusIntent).value, 96, accuracy: 0.000_001)
     }
 
     func testGermanMarginAndMarkup() {

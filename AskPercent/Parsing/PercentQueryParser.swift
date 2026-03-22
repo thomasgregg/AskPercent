@@ -2,6 +2,7 @@ import Foundation
 
 final class PercentQueryParser {
     private let normalizer: QueryNormalizer
+    var defaultTaxPercent: Double?
     private let numberCapture = #"([-+]?\d+(?:[.,]\d+)?)"#
     private let percentTokenPattern = #"(?:%|percent|prozent)"#
     private let reversePercentWholeHints = [
@@ -26,8 +27,12 @@ final class PercentQueryParser {
         "grundbetrag"
     ]
 
-    init(normalizer: QueryNormalizer = QueryNormalizer()) {
+    init(
+        normalizer: QueryNormalizer = QueryNormalizer(),
+        defaultTaxPercent: Double? = nil
+    ) {
         self.normalizer = normalizer
+        self.defaultTaxPercent = defaultTaxPercent
     }
 
     func parse(_ query: String) -> ParseOutcome {
@@ -47,6 +52,8 @@ final class PercentQueryParser {
 
         var candidates = [ParseCandidate]()
         candidates.append(contentsOf: parseTipTaxVat(in: normalized))
+        candidates.append(contentsOf: parseFinancialTaxContext(in: normalized))
+        candidates.append(contentsOf: parseTaxPresetNoRate(in: normalized))
         candidates.append(contentsOf: parsePercentOf(in: normalized))
         candidates.append(contentsOf: parseAddPercent(in: normalized))
         candidates.append(contentsOf: parseSubtractPercent(in: normalized))
@@ -63,6 +70,14 @@ final class PercentQueryParser {
 
         let ranked = rankAndDeduplicate(candidates: candidates, normalizedQuery: normalized, numericTokens: numericTokens)
         if ranked.isEmpty {
+            if likelyMissingTaxPreset(in: normalized) {
+                return ParseOutcome(
+                    normalizedQuery: normalized,
+                    candidates: [],
+                    failureReason: .taxPresetMissing,
+                    failureMessage: nil
+                )
+            }
             return ParseOutcome(
                 normalizedQuery: normalized,
                 candidates: [],
@@ -126,7 +141,7 @@ final class PercentQueryParser {
     }
 
     private func parseAddPercent(in text: String) -> [ParseCandidate] {
-        let excludedKindsPattern = #"(?:tip|tax|vat|trinkgeld|steuer|mwst|ust|umsatzsteuer)"#
+        let excludedKindsPattern = #"(?:tip|tax|sales\s*tax|vat|gst|iva|trinkgeld|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
         let connectorPattern = #"(?:plus|add|added|with|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
         let wordPattern = #"\b"# + numberCapture + #"\s*"# + connectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?!\s*"# + excludedKindsPattern + #")"#
         let symbolPattern = #"\b"# + numberCapture + #"\s*\+\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?!\s*"# + excludedKindsPattern + #")"#
@@ -592,7 +607,7 @@ final class PercentQueryParser {
         var results = [ParseCandidate]()
 
         let connectorPattern = #"(?:with|plus|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
-        let kindPattern = #"(tip|tax|vat|trinkgeld|steuer|mwst|ust|umsatzsteuer)"#
+        let kindPattern = #"(tip|tax|sales\s*tax|vat|gst|iva|trinkgeld|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
 
         let trailingKindPattern = #"\b"# + numberCapture + #"\s*"# + connectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + kindPattern + #"\b"#
         for capture in captures(trailingKindPattern, in: text) {
@@ -627,14 +642,143 @@ final class PercentQueryParser {
     }
 
     private func candidateForKind(base: Double, percent: Double, kind: String, confidence: Double) -> ParseCandidate {
-        switch kind {
+        let normalizedKind = kind.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+        switch normalizedKind {
         case "tip", "trinkgeld":
             return ParseCandidate(intent: .tip(base: base, percent: percent), confidence: confidence, interpretation: "\(base) with \(percent)% tip")
-        case "tax", "steuer":
+        case "tax", "sales tax", "steuer":
             return ParseCandidate(intent: .tax(base: base, percent: percent), confidence: confidence, interpretation: "\(base) with \(percent)% tax")
         default:
             return ParseCandidate(intent: .vat(base: base, percent: percent), confidence: confidence, interpretation: "\(base) with \(percent)% VAT")
         }
+    }
+
+    private func parseFinancialTaxContext(in text: String) -> [ParseCandidate] {
+        var results = [ParseCandidate]()
+
+        let netContext = #"(?:net|before\s+tax|netto|vor\s+steuer)"#
+        let grossContext = #"(?:gross|after\s+tax|brutto|nach\s+steuer)"#
+        let plusConnector = #"(?:with|plus|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
+        let minusConnector = #"(?:minus|less|excluding|excl(?:uding)?|without|abzüglich|abzueglich|ohne)"#
+        let taxKeywordPattern = #"(tax|sales\s*tax|vat|gst|iva|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
+
+        // Example: "100 net plus 19% vat", "100 netto zzgl 19% ust"
+        let addPattern = #"\b"# + numberCapture + #"\s+"# + netContext + #"\s*"# + plusConnector + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?:\s+"# + taxKeywordPattern + #")?\b"#
+        for capture in captures(addPattern, in: text) {
+            guard
+                let base = double(capture[0]),
+                let percent = double(capture[1])
+            else { continue }
+
+            let kind = capture.count > 2 ? capture[2] : ""
+            results.append(candidateForTaxKeyword(base: base, percent: percent, kind: kind, confidence: kind.isEmpty ? 0.9 : 0.97))
+        }
+
+        // Example: "120 after tax minus 20% tax", "120 brutto minus 20% steuer"
+        let subtractPattern = #"\b"# + numberCapture + #"\s+"# + grossContext + #"\s*"# + minusConnector + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?:\s+"# + taxKeywordPattern + #")?\b"#
+        for capture in captures(subtractPattern, in: text) {
+            guard
+                let base = double(capture[0]),
+                let percent = double(capture[1])
+            else { continue }
+
+            results.append(
+                ParseCandidate(
+                    intent: .subtractPercent(base: base, percent: percent),
+                    confidence: 0.95,
+                    interpretation: "\(base) gross minus \(percent)%"
+                )
+            )
+        }
+
+        return results
+    }
+
+    private func parseTaxPresetNoRate(in text: String) -> [ParseCandidate] {
+        guard let configuredPercent = defaultTaxPercent, configuredPercent >= 0 else { return [] }
+        var results = [ParseCandidate]()
+
+        let taxKeywordPattern = #"(tax|sales\s*tax|vat|gst|iva|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
+        let plusConnectorPattern = #"(?:with|plus|including|incl(?:uding)?|inc|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
+        let minusConnectorPattern = #"(?:minus|less|excluding|excl(?:uding)?|ex|without|abzüglich|abzueglich|ohne|abzgl)"#
+
+        let plusPattern = #"\b"# + numberCapture + #"\s*"# + plusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+        for capture in captures(plusPattern, in: text) {
+            guard let base = double(capture[0]) else { continue }
+            let kind = capture[1]
+            results.append(
+                candidateForTaxKeyword(
+                    base: base,
+                    percent: configuredPercent,
+                    kind: kind,
+                    confidence: 0.86
+                )
+            )
+        }
+
+        let minusPattern = #"\b"# + numberCapture + #"\s*"# + minusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+        for capture in captures(minusPattern, in: text) {
+            guard let base = double(capture[0]) else { continue }
+            results.append(
+                ParseCandidate(
+                    intent: .subtractPercent(base: base, percent: configuredPercent),
+                    confidence: 0.86,
+                    interpretation: "\(base) minus configured tax"
+                )
+            )
+        }
+
+        let netPlusPattern = #"\b"# + numberCapture + #"\s+(?:net|netto|before\s+tax|vor\s+steuer)\s*"# + plusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+        for capture in captures(netPlusPattern, in: text) {
+            guard let base = double(capture[0]) else { continue }
+            let kind = capture[1]
+            results.append(
+                candidateForTaxKeyword(
+                    base: base,
+                    percent: configuredPercent,
+                    kind: kind,
+                    confidence: 0.9
+                )
+            )
+        }
+
+        let grossMinusPattern = #"\b"# + numberCapture + #"\s+(?:gross|brutto|after\s+tax|nach\s+steuer)\s*"# + minusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+        for capture in captures(grossMinusPattern, in: text) {
+            guard let base = double(capture[0]) else { continue }
+            results.append(
+                ParseCandidate(
+                    intent: .subtractPercent(base: base, percent: configuredPercent),
+                    confidence: 0.9,
+                    interpretation: "\(base) gross minus configured tax"
+                )
+            )
+        }
+
+        return results
+    }
+
+    private func candidateForTaxKeyword(base: Double, percent: Double, kind: String, confidence: Double) -> ParseCandidate {
+        let normalizedKind = kind.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+        let isVatKeyword = normalizedKind.contains("vat")
+            || normalizedKind.contains("mwst")
+            || normalizedKind.contains("ust")
+            || normalizedKind.contains("umsatz")
+            || normalizedKind.contains("gst")
+            || normalizedKind.contains("iva")
+
+        if isVatKeyword {
+            return ParseCandidate(
+                intent: .vat(base: base, percent: percent),
+                confidence: confidence,
+                interpretation: "\(base) net plus \(percent)% VAT"
+            )
+        }
+
+        return ParseCandidate(
+            intent: .tax(base: base, percent: percent),
+            confidence: confidence,
+            interpretation: "\(base) net plus \(percent)% tax"
+        )
     }
 
     private func parseMargin(in text: String) -> [ParseCandidate] {
@@ -901,9 +1045,29 @@ final class PercentQueryParser {
         case .tip:
             return (query.contains("tip") || query.contains("trinkgeld")) ? 0.03 : 0
         case .tax:
-            return (query.contains("tax") || query.contains("steuer")) ? 0.03 : 0
+            return (query.contains("tax")
+                    || query.contains("sales tax")
+                    || query.contains("steuer")
+                    || query.contains("before tax")
+                    || query.contains("after tax")
+                    || query.contains("vor steuer")
+                    || query.contains("nach steuer")
+                    || query.contains("net")
+                    || query.contains("gross")
+                    || query.contains("netto")
+                    || query.contains("brutto")) ? 0.03 : 0
         case .vat:
-            return (query.contains("vat") || query.contains("mwst") || query.contains("ust") || query.contains("umsatzsteuer")) ? 0.03 : 0
+            return (query.contains("vat")
+                    || query.contains("mwst")
+                    || query.contains("ust")
+                    || query.contains("umsatzsteuer")
+                    || query.contains("umsatzst")
+                    || query.contains("gst")
+                    || query.contains("iva")
+                    || query.contains("net")
+                    || query.contains("gross")
+                    || query.contains("netto")
+                    || query.contains("brutto")) ? 0.03 : 0
         case .margin:
             return (query.contains("margin")
                     || query.contains("gross margin")
@@ -961,5 +1125,28 @@ final class PercentQueryParser {
 
     private func containsAnyHint(in text: String, hints: [String]) -> Bool {
         hints.contains { text.contains($0) }
+    }
+
+    private func likelyMissingTaxPreset(in text: String) -> Bool {
+        guard defaultTaxPercent == nil else { return false }
+
+        let hasPercentRate = text.contains("%") || text.contains("percent") || text.contains("prozent")
+        if hasPercentRate { return false }
+
+        let taxKeywords = [
+            "tax", "sales tax", "vat", "gst", "iva",
+            "steuer", "mwst", "ust", "umsatzsteuer", "umsatzst"
+        ]
+        let hasTaxKeyword = containsAnyHint(in: text, hints: taxKeywords)
+        guard hasTaxKeyword else { return false }
+
+        let contextHints = [
+            "plus", "with", "including", "incl", "inc",
+            "minus", "less", "excluding", "excl", "ex", "without",
+            "mit", "inkl", "zzgl", "zuzüglich", "zuzueglich",
+            "ohne", "abzüglich", "abzueglich", "abzgl",
+            "net", "gross", "netto", "brutto", "before tax", "after tax", "vor steuer", "nach steuer"
+        ]
+        return containsAnyHint(in: text, hints: contextHints)
     }
 }

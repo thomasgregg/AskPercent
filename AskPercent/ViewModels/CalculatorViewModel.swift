@@ -47,6 +47,7 @@ final class CalculatorViewModel: ObservableObject {
     func bind(store: LocalPersistenceStore) {
         guard self.store == nil else { return }
         self.store = store
+        updateParserConfiguration()
 
         favoriteSubscription = store.$favorites
             .receive(on: DispatchQueue.main)
@@ -58,6 +59,7 @@ final class CalculatorViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self else { return }
+                self.updateParserConfiguration()
                 if !self.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     self.evaluate(self.query)
                 } else {
@@ -124,13 +126,27 @@ final class CalculatorViewModel: ObservableObject {
             return
         }
 
+        if outcome.candidates.isEmpty, outcome.failureReason != nil {
+            candidateResultsCache = []
+            current = nil
+            alternatives = []
+            parseFailureMessage = localizedParseFailure(from: outcome)
+            isAmbiguous = false
+            updateFavoriteState()
+            return
+        }
+
         let candidateResults = outcome.candidates.compactMap { candidate -> CandidateResult? in
             guard let result = try? calculator.calculate(intent: candidate.intent, language: currentLanguage) else { return nil }
             return CandidateResult(candidate: candidate, result: result)
         }
 
         guard !candidateResults.isEmpty else {
-            parseFailureMessage = AppStrings(language: currentLanguage).invalidMathMessage
+            if shouldShowTaxPresetGuidance(for: outcome.normalizedQuery) {
+                parseFailureMessage = AppStrings(language: currentLanguage).parseFailureTaxPresetMissing
+            } else {
+                parseFailureMessage = AppStrings(language: currentLanguage).invalidMathMessage
+            }
             current = nil
             alternatives = []
             isAmbiguous = false
@@ -204,10 +220,41 @@ final class CalculatorViewModel: ObservableObject {
         switch outcome.failureReason {
         case .numbersMissing:
             return strings.parseFailureNoNumbers
+        case .taxPresetMissing:
+            return strings.parseFailureTaxPresetMissing
         case .lowConfidence:
             return strings.parseFailureLowConfidence
         case .none:
             return strings.parseFailureLowConfidence
         }
+    }
+
+    private func updateParserConfiguration() {
+        guard let store else { return }
+        if store.settings.taxPresetEnabled {
+            parser.defaultTaxPercent = max(store.settings.taxPresetPercent, 0)
+        } else {
+            parser.defaultTaxPercent = nil
+        }
+    }
+
+    private func shouldShowTaxPresetGuidance(for normalizedQuery: String) -> Bool {
+        guard let store, !store.settings.taxPresetEnabled else { return false }
+        guard !normalizedQuery.contains("%"),
+              !normalizedQuery.contains("percent"),
+              !normalizedQuery.contains("prozent") else { return false }
+
+        let taxTerms = ["tax", "sales tax", "vat", "gst", "iva", "steuer", "mwst", "ust", "umsatzsteuer", "umsatzst"]
+        let contextTerms = [
+            "plus", "with", "including", "incl", "inc",
+            "minus", "less", "excluding", "excl", "ex", "without",
+            "mit", "inkl", "zzgl", "zuzüglich", "zuzueglich",
+            "ohne", "abzüglich", "abzueglich", "abzgl",
+            "net", "gross", "netto", "brutto", "before tax", "after tax", "vor steuer", "nach steuer"
+        ]
+
+        let hasTax = taxTerms.contains { normalizedQuery.contains($0) }
+        let hasContext = contextTerms.contains { normalizedQuery.contains($0) }
+        return hasTax && hasContext
     }
 }

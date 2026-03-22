@@ -88,13 +88,17 @@ struct UserSettings: Codable, Equatable {
     var showFormula: Bool
     var hapticsEnabled: Bool
     var numberFormatStyle: NumberFormatStyle
+    var taxPresetEnabled: Bool
+    var taxPresetPercent: Double
 
     static let `default` = UserSettings(
         language: AppLanguage.defaultLanguage,
         decimalPrecision: 2,
         showFormula: true,
         hapticsEnabled: true,
-        numberFormatStyle: .system
+        numberFormatStyle: .system,
+        taxPresetEnabled: false,
+        taxPresetPercent: 19
     )
 
     init(
@@ -102,13 +106,17 @@ struct UserSettings: Codable, Equatable {
         decimalPrecision: Int,
         showFormula: Bool,
         hapticsEnabled: Bool,
-        numberFormatStyle: NumberFormatStyle
+        numberFormatStyle: NumberFormatStyle,
+        taxPresetEnabled: Bool,
+        taxPresetPercent: Double
     ) {
         self.language = language
         self.decimalPrecision = decimalPrecision
         self.showFormula = showFormula
         self.hapticsEnabled = hapticsEnabled
         self.numberFormatStyle = numberFormatStyle
+        self.taxPresetEnabled = taxPresetEnabled
+        self.taxPresetPercent = taxPresetPercent
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -117,6 +125,8 @@ struct UserSettings: Codable, Equatable {
         case showFormula
         case hapticsEnabled
         case numberFormatStyle
+        case taxPresetEnabled
+        case taxPresetPercent
     }
 
     init(from decoder: Decoder) throws {
@@ -126,5 +136,7 @@ struct UserSettings: Codable, Equatable {
         showFormula = try container.decodeIfPresent(Bool.self, forKey: .showFormula) ?? true
         hapticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .hapticsEnabled) ?? true
         numberFormatStyle = try container.decodeIfPresent(NumberFormatStyle.self, forKey: .numberFormatStyle) ?? .system
+        taxPresetEnabled = try container.decodeIfPresent(Bool.self, forKey: .taxPresetEnabled) ?? false
+        taxPresetPercent = try container.decodeIfPresent(Double.self, forKey: .taxPresetPercent) ?? 19
     }
 }

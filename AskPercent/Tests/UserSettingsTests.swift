@@ -4,6 +4,8 @@ import XCTest
 final class UserSettingsTests: XCTestCase {
     func testDefaultLanguageUsesSystem() {
         XCTAssertEqual(UserSettings.default.language, .system)
+        XCTAssertFalse(UserSettings.default.taxPresetEnabled)
+        XCTAssertEqual(UserSettings.default.taxPresetPercent, 19, accuracy: 0.000_001)
     }
 
     func testExplicitLanguageResolution() {
@@ -26,5 +28,7 @@ final class UserSettingsTests: XCTestCase {
         XCTAssertEqual(decoded.language, .system)
         XCTAssertEqual(decoded.decimalPrecision, 3)
         XCTAssertEqual(decoded.numberFormatStyle, .us)
+        XCTAssertFalse(decoded.taxPresetEnabled)
+        XCTAssertEqual(decoded.taxPresetPercent, 19, accuracy: 0.000_001)
     }
 }

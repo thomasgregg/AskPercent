@@ -40,7 +40,7 @@ struct AppStrings {
     var headerTitle: String {
         switch language {
         case .english: return "Ask your percentage question"
-        case .german: return "Stelle deine Prozentfrage"
+        case .german: return "Stell deine Prozentfrage"
         }
     }
 
@@ -242,6 +242,13 @@ struct AppStrings {
         }
     }
 
+    var settingsTaxSection: String {
+        switch language {
+        case .english: return "Tax"
+        case .german: return "Steuer"
+        }
+    }
+
     var settingsLanguageLabel: String {
         switch language {
         case .english: return "Language"
@@ -274,6 +281,20 @@ struct AppStrings {
         switch language {
         case .english: return "Haptics"
         case .german: return "Haptik"
+        }
+    }
+
+    var settingsTaxPresetToggleLabel: String {
+        switch language {
+        case .english: return "Use tax preset"
+        case .german: return "Steuer-Preset nutzen"
+        }
+    }
+
+    var settingsTaxPresetPercentLabel: String {
+        switch language {
+        case .english: return "Tax preset rate"
+        case .german: return "Steuer-Preset-Satz"
         }
     }
 
@@ -357,6 +378,15 @@ struct AppStrings {
             return "I couldn't confidently parse that. Try examples like '25% of 167' or 'from 80 to 96'."
         case .german:
             return "Ich konnte das nicht sicher interpretieren. Probiere z. B. '25% von 167' oder 'von 80 auf 96'."
+        }
+    }
+
+    var parseFailureTaxPresetMissing: String {
+        switch language {
+        case .english:
+            return "Write '100 minus 19% tax' or enable Tax preset in Settings."
+        case .german:
+            return "Schreibe z. B. '100 minus 19% Steuer' oder aktiviere das Steuer-Preset in den Einstellungen."
         }
     }
 
