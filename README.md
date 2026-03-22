@@ -114,6 +114,7 @@ Use these directly in the input field.
   - DE: `12,5% von 200`, `12,5% von 1 234,56`
 - Negative and zero percent inputs:
   - EN: `-20% of 50`, `0% of 900`
+  - DE: `-20% von 50`, `0% von 900`
 
 ## Formula Engine
 Implemented formulas:
