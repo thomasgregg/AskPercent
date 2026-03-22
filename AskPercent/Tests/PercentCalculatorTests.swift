@@ -39,6 +39,17 @@ final class PercentCalculatorTests: XCTestCase {
         XCTAssertEqual(result.value, 150, accuracy: 0.000_001)
     }
 
+    func testReversePercentWithTargetPercent() throws {
+        let result = try calculator.calculate(intent: .reversePercentTarget(knownPercent: 30, knownPart: 45, targetPercent: 50))
+        XCTAssertEqual(result.value, 75, accuracy: 0.000_001)
+    }
+
+    func testReversePercentFindPercent() throws {
+        let result = try calculator.calculate(intent: .reversePercentFindPercent(knownPercent: 10, knownPart: 40, targetPart: 50))
+        XCTAssertEqual(result.value, 12.5, accuracy: 0.000_001)
+        XCTAssertTrue(result.isPercentValue)
+    }
+
     func testPercentOfRelation() throws {
         let result = try calculator.calculate(intent: .percentOfRelation(part: 41.75, whole: 167))
         XCTAssertEqual(result.value, 25, accuracy: 0.000_001)
@@ -56,6 +67,7 @@ final class PercentCalculatorTests: XCTestCase {
 
     func testDivideByZeroSafety() {
         XCTAssertThrowsError(try calculator.calculate(intent: .reversePercent(percent: 0, partial: 45)))
+        XCTAssertThrowsError(try calculator.calculate(intent: .reversePercentFindPercent(knownPercent: 10, knownPart: 0, targetPart: 50)))
         XCTAssertThrowsError(try calculator.calculate(intent: .percentChange(old: 0, new: 4)))
         XCTAssertThrowsError(try calculator.calculate(intent: .percentOfRelation(part: 5, whole: 0)))
     }

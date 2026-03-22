@@ -7,6 +7,7 @@ struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel = CalculatorViewModel()
     @FocusState private var isInputFocused: Bool
+    private let keyboardTokens = ["%", "+", "-", ",", "."]
 
     private var strings: AppStrings {
         AppStrings(language: store.settings.language)
@@ -73,6 +74,12 @@ struct HomeView: View {
             .padding(.horizontal, 20)
             .padding(.top, 62)
             .padding(.bottom, 24)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture {
+            if isInputFocused {
+                isInputFocused = false
+            }
         }
         .background(pageBackground.ignoresSafeArea())
         .navigationTitle("")
@@ -161,6 +168,10 @@ struct HomeView: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .focused($isInputFocused)
+                .submitLabel(.done)
+                .onSubmit {
+                    isInputFocused = false
+                }
                 .padding(.trailing, viewModel.query.isEmpty ? 16 : 44)
                 .padding(16)
                 .background(
@@ -187,6 +198,11 @@ struct HomeView: View {
                     }
                 }
 
+            if isInputFocused {
+                quickTokenRow
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+
             if viewModel.isAmbiguous {
                 Text(strings.ambiguityHint)
                     .font(.footnote)
@@ -194,6 +210,17 @@ struct HomeView: View {
                     .padding(.horizontal, 4)
             }
         }
+    }
+
+    private var quickTokenRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(keyboardTokens, id: \.self) { token in
+                    keyboardTokenButton(token)
+                }
+            }
+        }
+        .padding(.vertical, 2)
     }
 
     private var chips: some View {
@@ -246,6 +273,47 @@ struct HomeView: View {
     private func requestInputFocus() {
         DispatchQueue.main.async {
             isInputFocused = true
+        }
+    }
+
+    @ViewBuilder
+    private func keyboardTokenButton(_ token: String) -> some View {
+        Button {
+            insertKeyboardToken(token)
+            isInputFocused = true
+        } label: {
+            Text(token)
+                .font(.system(.body, design: .rounded).weight(.semibold))
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(cardBackground)
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(cardBorder, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Insert \(token)")
+    }
+
+    private func insertKeyboardToken(_ token: String) {
+        switch token {
+        case "+", "-":
+            let trimmed = viewModel.query.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty {
+                return
+            }
+            if viewModel.query.hasSuffix(" ") {
+                viewModel.query.append(token + " ")
+            } else {
+                viewModel.query.append(" " + token + " ")
+            }
+        default:
+            viewModel.query.append(token)
         }
     }
 

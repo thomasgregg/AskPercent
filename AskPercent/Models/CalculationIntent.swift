@@ -22,6 +22,8 @@ enum CalculationIntent: Equatable {
     case percentChange(old: Double, new: Double)
     case discountPercent(original: Double, new: Double)
     case reversePercent(percent: Double, partial: Double)
+    case reversePercentTarget(knownPercent: Double, knownPart: Double, targetPercent: Double)
+    case reversePercentFindPercent(knownPercent: Double, knownPart: Double, targetPart: Double)
     case percentOfRelation(part: Double, whole: Double)
     case tip(base: Double, percent: Double)
     case tax(base: Double, percent: Double)
@@ -42,6 +44,10 @@ enum CalculationIntent: Equatable {
         case .discountPercent:
             return .discountPercent
         case .reversePercent:
+            return .reversePercent
+        case .reversePercentTarget:
+            return .reversePercent
+        case .reversePercentFindPercent:
             return .reversePercent
         case .percentOfRelation:
             return .percentOfRelation
@@ -72,6 +78,10 @@ enum CalculationIntent: Equatable {
             return "discountPercent|\(original)|\(new)"
         case let .reversePercent(percent, partial):
             return "reversePercent|\(percent)|\(partial)"
+        case let .reversePercentTarget(knownPercent, knownPart, targetPercent):
+            return "reversePercentTarget|\(knownPercent)|\(knownPart)|\(targetPercent)"
+        case let .reversePercentFindPercent(knownPercent, knownPart, targetPart):
+            return "reversePercentFindPercent|\(knownPercent)|\(knownPart)|\(targetPart)"
         case let .percentOfRelation(part, whole):
             return "percentOfRelation|\(part)|\(whole)"
         case let .tip(base, percent):

@@ -127,6 +127,48 @@ struct PercentCalculator {
                 ]
             )
 
+        case let .reversePercentTarget(knownPercent, knownPart, targetPercent):
+            guard knownPercent != 0 else { throw CalculationError.divideByZero }
+            let whole = knownPart / (knownPercent / 100)
+            let value = whole * (targetPercent / 100)
+            let primaryLabel = resolvedLanguage == .german
+            ? "\(compact(targetPercent))%-Wert"
+            : "\(compact(targetPercent))% value"
+            return CalculationResult(
+                intentType: .reversePercent,
+                primaryLabel: primaryLabel,
+                value: value,
+                isPercentValue: false,
+                explanation: resolvedLanguage == .german
+                ? "Wenn \(compact(knownPercent))% \(compact(knownPart)) sind, dann sind \(compact(targetPercent))% \(compact(value))."
+                : "If \(compact(knownPercent))% is \(compact(knownPart)), then \(compact(targetPercent))% is \(compact(value)).",
+                formula: "(\(compact(knownPart)) / (\(compact(knownPercent)) / 100)) × (\(compact(targetPercent)) / 100)",
+                breakdown: [
+                    ResultBreakdownItem(label: resolvedLanguage == .german ? "Bekannter Anteil" : "Known part", value: knownPart),
+                    ResultBreakdownItem(label: resolvedLanguage == .german ? "Bekannter Prozentsatz" : "Known percent", value: knownPercent, isPercent: true),
+                    ResultBreakdownItem(label: resolvedLanguage == .german ? "Gesuchter Prozentsatz" : "Target percent", value: targetPercent, isPercent: true)
+                ]
+            )
+
+        case let .reversePercentFindPercent(knownPercent, knownPart, targetPart):
+            guard knownPart != 0 else { throw CalculationError.divideByZero }
+            let value = targetPart * knownPercent / knownPart
+            return CalculationResult(
+                intentType: .reversePercent,
+                primaryLabel: resolvedLanguage == .german ? "Prozent" : "Percent",
+                value: value,
+                isPercentValue: true,
+                explanation: resolvedLanguage == .german
+                ? "Wenn \(compact(knownPart)) \(compact(knownPercent))% sind, dann sind \(compact(targetPart)) \(compact(value))%."
+                : "If \(compact(knownPart)) is \(compact(knownPercent))%, then \(compact(targetPart)) is \(compact(value))%.",
+                formula: "(\(compact(targetPart)) × \(compact(knownPercent))) / \(compact(knownPart))",
+                breakdown: [
+                    ResultBreakdownItem(label: resolvedLanguage == .german ? "Bekannter Anteil" : "Known part", value: knownPart),
+                    ResultBreakdownItem(label: resolvedLanguage == .german ? "Bekannter Prozentsatz" : "Known percent", value: knownPercent, isPercent: true),
+                    ResultBreakdownItem(label: resolvedLanguage == .german ? "Gesuchter Anteil" : "Target part", value: targetPart)
+                ]
+            )
+
         case let .percentOfRelation(part, whole):
             guard whole != 0 else { throw CalculationError.divideByZero }
             let value = part / whole * 100

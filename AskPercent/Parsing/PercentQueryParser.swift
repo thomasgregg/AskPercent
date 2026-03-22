@@ -380,10 +380,102 @@ final class PercentQueryParser {
     }
 
     private func parseReversePercent(in text: String) -> [ParseCandidate] {
-        let standardPattern = #"\b(?:if\s+|wenn\s+)?"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*(?:is|are|equals|=|sind|ist|entsprechen|betragen)\s*"# + numberCapture + #"\b"#
+        let relationVerbPattern = #"(?:is|are|equals|=|sind|ist|entsprechen|betragen)"#
+        let targetValueIntroPattern = #"(?:what\s+is|how\s+much\s+is|was\s+sind|was\s+ist|wie\s+viel\s+sind|wieviel\s+sind|wie\s+gro(?:ß|ss)\s+ist)"#
+        let targetPercentIntroPattern = #"(?:what\s+percent\s+is|wie\s+viel\s+prozent\s+sind|wieviel\s+prozent\s+sind|wie\s+viel\s+prozent\s+ist|wieviel\s+prozent\s+ist)"#
+
+        let percentFirstTargetPercentPattern = #"\b(?:if\s+|wenn\s+)?"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + relationVerbPattern + #"\s*"# + numberCapture + #".{0,40}?"# + targetValueIntroPattern + #"\s+"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?=\s|$|[.,])"#
+        let partFirstTargetPercentPattern = #"\b(?:if\s+|wenn\s+)?"# + numberCapture + #"\s*"# + relationVerbPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #".{0,40}?"# + targetValueIntroPattern + #"\s+"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?=\s|$|[.,])"#
+
+        let percentFirstFindPercentPattern = #"\b(?:if\s+|wenn\s+)?"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + relationVerbPattern + #"\s*"# + numberCapture + #".{0,40}?(?:"# + targetPercentIntroPattern + #"|"# + targetValueIntroPattern + #")\s+"# + numberCapture + #"(?!\s*(?:%|percent|prozent))(?:\b|$)"#
+        let partFirstFindPercentPattern = #"\b(?:if\s+|wenn\s+)?"# + numberCapture + #"\s*"# + relationVerbPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #".{0,40}?(?:"# + targetPercentIntroPattern + #"|"# + targetValueIntroPattern + #")\s+"# + numberCapture + #"(?!\s*(?:%|percent|prozent))(?:\b|$)"#
+
+        let standardPattern = #"\b(?:if\s+|wenn\s+)?"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + relationVerbPattern + #"\s*"# + numberCapture + #"\b"#
         let invertedGermanPattern = #"\b(?:wenn\s+)?"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + numberCapture + #"\s*(?:sind|ist)\b"#
-        let swappedOrderPattern = #"\b"# + numberCapture + #"\s*(?:is|are|equals|=|sind|ist|entsprechen|betragen)\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?:\b|$)"#
+        let swappedOrderPattern = #"\b"# + numberCapture + #"\s*"# + relationVerbPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"(?=\s|$|[.,])"#
         let hasWholeHint = containsAnyHint(in: text, hints: reversePercentWholeHints)
+
+        let percentFirstTargetCandidates = captures(percentFirstTargetPercentPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let knownPercent = double(capture[0]),
+                let knownPart = double(capture[1]),
+                let targetPercent = double(capture[2])
+            else { return nil }
+
+            if abs(targetPercent - 100) < 0.000_001 {
+                return ParseCandidate(
+                    intent: .reversePercent(percent: knownPercent, partial: knownPart),
+                    confidence: 0.99,
+                    interpretation: "if \(knownPercent)% is \(knownPart), what is 100%"
+                )
+            }
+
+            return ParseCandidate(
+                intent: .reversePercentTarget(knownPercent: knownPercent, knownPart: knownPart, targetPercent: targetPercent),
+                confidence: 0.99,
+                interpretation: "if \(knownPercent)% is \(knownPart), what is \(targetPercent)%"
+            )
+        }
+
+        let partFirstTargetCandidates = captures(partFirstTargetPercentPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let knownPart = double(capture[0]),
+                let knownPercent = double(capture[1]),
+                let targetPercent = double(capture[2])
+            else { return nil }
+
+            if abs(targetPercent - 100) < 0.000_001 {
+                return ParseCandidate(
+                    intent: .reversePercent(percent: knownPercent, partial: knownPart),
+                    confidence: 0.99,
+                    interpretation: "if \(knownPercent)% is \(knownPart), what is 100%"
+                )
+            }
+
+            return ParseCandidate(
+                intent: .reversePercentTarget(knownPercent: knownPercent, knownPart: knownPart, targetPercent: targetPercent),
+                confidence: 0.99,
+                interpretation: "if \(knownPercent)% is \(knownPart), what is \(targetPercent)%"
+            )
+        }
+
+        let targetCandidates = percentFirstTargetCandidates + partFirstTargetCandidates
+        if !targetCandidates.isEmpty {
+            return targetCandidates
+        }
+
+        let percentFirstFindPercentCandidates = captures(percentFirstFindPercentPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let knownPercent = double(capture[0]),
+                let knownPart = double(capture[1]),
+                let targetPart = double(capture[2])
+            else { return nil }
+
+            return ParseCandidate(
+                intent: .reversePercentFindPercent(knownPercent: knownPercent, knownPart: knownPart, targetPart: targetPart),
+                confidence: 0.99,
+                interpretation: "if \(knownPercent)% is \(knownPart), what percent is \(targetPart)"
+            )
+        }
+
+        let partFirstFindPercentCandidates = captures(partFirstFindPercentPattern, in: text).compactMap { capture -> ParseCandidate? in
+            guard
+                let knownPart = double(capture[0]),
+                let knownPercent = double(capture[1]),
+                let targetPart = double(capture[2])
+            else { return nil }
+
+            return ParseCandidate(
+                intent: .reversePercentFindPercent(knownPercent: knownPercent, knownPart: knownPart, targetPart: targetPart),
+                confidence: 0.99,
+                interpretation: "if \(knownPercent)% is \(knownPart), what percent is \(targetPart)"
+            )
+        }
+
+        let findPercentCandidates = percentFirstFindPercentCandidates + partFirstFindPercentCandidates
+        if !findPercentCandidates.isEmpty {
+            return findPercentCandidates
+        }
 
         let standard = captures(standardPattern, in: text).compactMap { capture -> ParseCandidate? in
             guard
@@ -798,6 +890,12 @@ final class PercentQueryParser {
             return (query.contains("discount") || query.contains("rabatt") || query.contains("statt") || query.contains("anstatt")) ? 0.04 : 0
         case .reversePercent:
             return containsAnyHint(in: query, hints: reversePercentWholeHints) ? 0.03 : 0
+        case .reversePercentTarget:
+            return containsAnyHint(in: query, hints: reversePercentWholeHints) ? 0.03 : 0
+        case .reversePercentFindPercent:
+            return (query.contains("what percent")
+                    || query.contains("wie viel prozent")
+                    || query.contains("wieviel prozent")) ? 0.03 : 0
         case .percentOfRelation:
             return (query.contains("what percent") || query.contains("wie viel prozent") || query.contains("wieviel prozent")) ? 0.03 : 0
         case .tip:
@@ -835,6 +933,9 @@ final class PercentQueryParser {
              .margin,
              .markup:
             return 2
+        case .reversePercentTarget,
+             .reversePercentFindPercent:
+            return 3
         }
     }
 

@@ -4,17 +4,23 @@ AskPercent is a native iOS SwiftUI MVP for deterministic natural-language percen
 
 ## What It Does
 - Local-only parsing and calculation (no backend, no AI API)
-- Natural-language percentage intents (e.g. `25% of 167`, `from 80 to 96`, `markup 40 on cost 120`)
+- Deterministic natural-language percentage intents (e.g. `25% of 167`, `from 80 to 96`, `markup 40 on cost 120`)
 - Supports both English and German query phrasing (e.g. `25% von 167`, `von 80 auf 96`, `85 plus 19% MwSt`)
-- App language setting: switch full UI and result text between English and German
+- App language setting with `System (Device)`, `English`, `Deutsch` (full UI + result text localization)
 - Number format setting: `System`, `US`, `European`
 - Live debounced parsing + result updates
 - Ambiguity handling with ranked alternative interpretations
+- Home input quality-of-life:
+  - autofocus when app opens / returning to Home
+  - trailing clear `x` button
+  - keyboard dismiss by tapping outside
+  - quick symbol chips (`%`, `+`, `-`, `,`, `.`) while editing
 - Result card quick actions:
   - copy icon (copies full details)
   - long-press context menu (`Copy Result`, `Copy Full Details`)
 - History, favorites, and settings persisted with `UserDefaults` + `Codable`
 - History grouped by day sections (`Today/Yesterday/date`)
+- Home tab order: `Home`, `Favorites`, `History`, `Settings`
 - Light and dark mode support
 
 ## Architecture
@@ -50,10 +56,46 @@ If confidence is low or patterns fail, the app returns a helpful message instead
 
 Supported in both English and German with deterministic regex/pattern rules.
 
+## Query Examples You Can Use
+English:
+- `25% of 167`
+- `167 plus 25%`
+- `899 minus 12%`
+- `from 80 to 96`
+- `I paid 134 instead of 179, what percent discount is that?`
+- `41.75 is what percent of 167`
+- `240 with 15% tip`
+- `85 plus 19% VAT`
+- `what margin is 40 on 120`
+- `what markup is 40 on cost 120`
+- `if 30% is 45 what is 100%`
+- `if 30% is 45 what is 50%`
+- `if 40 is 10% what is 50` (returns a percent)
+- `if 40 is 10% what percent is 50` (returns a percent)
+
+German:
+- `25% von 167`
+- `167 plus 25 prozent`
+- `899 minus 12 prozent`
+- `von 80 auf 96`
+- `ich habe 134 statt 179 bezahlt`
+- `41,75 sind wie viel prozent von 167`
+- `240 mit 15% trinkgeld`
+- `85 plus 19% mwst`
+- `was ist die marge 40 auf 120`
+- `was ist der aufschlag 40 auf kosten 120`
+- `wenn 30 prozent sind 45 was sind 100 prozent`
+- `wenn 30 prozent sind 45 was sind 50 prozent`
+- `wenn 40 sind 10 prozent was sind 50` (returns a percent)
+
 ## Extended Pattern Coverage
 In addition to core intents, parser coverage includes:
 - reverse-percent variants:
   - `if 30% is 45 what is 100%`
+  - `if 30% is 45 what is 90%`
+  - `if 10% is 50 what is 50%` (returns a number)
+  - `if 40 is 10% what is 50` (returns a percent)
+  - `if 40 is 10% what percent is 50`
   - `20 is 115%`
   - `20 sind 115%`
   - `10% sind 5 - wie groß ist der Gesamtwert?`
@@ -87,6 +129,8 @@ Implemented formulas:
 - `percentChange = (new - old) / old * 100`
 - `discountPercent = (original - new) / original * 100`
 - `reversePercent = partial / (percent / 100)`
+- `reversePercentTarget = (knownPart / (knownPercent / 100)) * (targetPercent / 100)`
+- `reversePercentFindPercent = (targetPart * knownPercent) / knownPart`
 - `percentOfRelation = part / whole * 100`
 - `margin = profit / revenue * 100`
 - `markup = profit / cost * 100`
@@ -112,7 +156,9 @@ Current test coverage includes:
 - ambiguity behavior
 - decimal comma inputs
 - grouped-number parsing (`1 234,56`, `1'234.56`)
-- reverse-percent variant phrasing (EN + DE)
+- reverse-percent variant phrasing (EN + DE), including:
+  - target-percent output (`if 10% is 50 what is 50%`)
+  - target-part-to-percent output (`if 40 is 10% what is 50`)
 - increase/decrease-by phrasing
 - now/then phrasing variants
 - formula correctness

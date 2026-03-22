@@ -91,6 +91,86 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
     }
 
+    func testReversePercentWithTargetPercentEnglish() throws {
+        let outcome = parser.parse("if 30% is 45 what is 50%")
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected reverse-percent target candidate")
+        }
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 75, accuracy: 0.000_001)
+    }
+
+    func testReversePercentWithTargetPercentEnglishReturnsNumber() throws {
+        let outcome = parser.parse("if 10% is 50 what is 50%")
+        XCTAssertFalse(outcome.isAmbiguous)
+        XCTAssertEqual(outcome.candidates.count, 1)
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected reverse-percent target candidate")
+        }
+
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 250, accuracy: 0.000_001)
+        XCTAssertFalse(result.isPercentValue)
+    }
+
+    func testReversePercentWithTargetPercentPartFirstEnglish() throws {
+        let outcome = parser.parse("if 40 is 10% what is 50%")
+        XCTAssertFalse(outcome.isAmbiguous)
+        XCTAssertEqual(outcome.candidates.count, 1)
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected reverse-percent target candidate for part-first English phrase")
+        }
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 200, accuracy: 0.000_001)
+    }
+
+    func testReversePercentFindPercentPartFirstEnglish() throws {
+        let outcome = parser.parse("if 40 is 10% what is 50")
+        XCTAssertFalse(outcome.isAmbiguous)
+        XCTAssertEqual(outcome.candidates.count, 1)
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected reverse-percent find-percent candidate")
+        }
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 12.5, accuracy: 0.000_001)
+        XCTAssertTrue(result.isPercentValue)
+    }
+
+    func testReversePercentFindPercentExplicitPercentQuestionEnglish() throws {
+        let outcome = parser.parse("if 40 is 10% what percent is 50")
+        XCTAssertFalse(outcome.isAmbiguous)
+        XCTAssertEqual(outcome.candidates.count, 1)
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected reverse-percent find-percent candidate for explicit percent question")
+        }
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 12.5, accuracy: 0.000_001)
+    }
+
+    func testReversePercentWithExplicitTargetIsNotAmbiguous() {
+        let outcome = parser.parse("if 30% is 45 what is 90%")
+        XCTAssertFalse(outcome.isAmbiguous)
+        XCTAssertEqual(outcome.candidates.count, 1)
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+    }
+
+    func testReversePercentWithExplicitHundredDoesNotDuplicate() {
+        let outcome = parser.parse("if 30% is 45 what is 100%")
+        XCTAssertFalse(outcome.isAmbiguous)
+        XCTAssertEqual(outcome.candidates.count, 1)
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+    }
+
     func testReversePercentSwappedOrderEnglish() throws {
         let outcome = parser.parse("20 is 115%")
         XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
@@ -289,6 +369,31 @@ final class PercentQueryParserTests: XCTestCase {
         }
         let result = try calculator.calculate(intent: intent)
         XCTAssertEqual(result.value, 150, accuracy: 0.000_001)
+    }
+
+    func testReversePercentWithTargetPercentGerman() throws {
+        let outcome = parser.parse("wenn 30 prozent sind 45 was sind 50 prozent")
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected reverse-percent target candidate for German phrase")
+        }
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 75, accuracy: 0.000_001)
+    }
+
+    func testReversePercentFindPercentPartFirstGerman() throws {
+        let outcome = parser.parse("wenn 40 sind 10 prozent was sind 50")
+        XCTAssertFalse(outcome.isAmbiguous)
+        XCTAssertEqual(outcome.candidates.count, 1)
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected reverse-percent find-percent candidate for German phrase")
+        }
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 12.5, accuracy: 0.000_001)
+        XCTAssertTrue(result.isPercentValue)
     }
 
     func testReversePercentSwappedOrderGerman() throws {

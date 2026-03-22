@@ -434,6 +434,14 @@ struct AppStrings {
             return language == .german ? "Rabatt von \(compact(original)) auf \(compact(new))" : "discount from \(compact(original)) to \(compact(new))"
         case let .reversePercent(percent, partial):
             return language == .german ? "Wenn \(compact(percent))% \(compact(partial)) sind, was sind 100%?" : "if \(compact(percent))% is \(compact(partial)), what is 100%"
+        case let .reversePercentTarget(knownPercent, knownPart, targetPercent):
+            return language == .german
+            ? "Wenn \(compact(knownPercent))% \(compact(knownPart)) sind, was sind \(compact(targetPercent))%?"
+            : "if \(compact(knownPercent))% is \(compact(knownPart)), what is \(compact(targetPercent))%"
+        case let .reversePercentFindPercent(knownPercent, knownPart, targetPart):
+            return language == .german
+            ? "Wenn \(compact(knownPercent))% \(compact(knownPart)) sind, wie viel Prozent sind \(compact(targetPart))?"
+            : "if \(compact(knownPercent))% is \(compact(knownPart)), what percent is \(compact(targetPart))"
         case let .percentOfRelation(part, whole):
             return language == .german ? "Wie viel Prozent sind \(compact(part)) von \(compact(whole))?" : "what percent is \(compact(part)) of \(compact(whole))"
         case let .tip(base, percent):
