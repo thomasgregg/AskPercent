@@ -325,6 +325,27 @@ final class PercentQueryParserTests: XCTestCase {
             return XCTFail("Expected VAT candidate for inc VAT using preset")
         }
         XCTAssertEqual(try calculator.calculate(intent: incVatIntent).value, 119, accuracy: 0.000_001)
+
+        let addTax = presetParser.parse("100 add tax")
+        XCTAssertEqual(addTax.candidates.first?.intent.type, .tax)
+        guard let addTaxIntent = addTax.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for add-tax using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: addTaxIntent).value, 119, accuracy: 0.000_001)
+
+        let plusSymbolTax = presetParser.parse("100 + tax")
+        XCTAssertEqual(plusSymbolTax.candidates.first?.intent.type, .tax)
+        guard let plusSymbolTaxIntent = plusSymbolTax.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for plus-symbol tax using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: plusSymbolTaxIntent).value, 119, accuracy: 0.000_001)
+
+        let minusSymbolTax = presetParser.parse("100 - tax")
+        XCTAssertEqual(minusSymbolTax.candidates.first?.intent.type, .subtractPercent)
+        guard let minusSymbolTaxIntent = minusSymbolTax.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent candidate for minus-symbol tax using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: minusSymbolTaxIntent).value, 81, accuracy: 0.000_001)
     }
 
     func testTaxPresetWithoutExplicitRateGerman() throws {
@@ -347,9 +368,19 @@ final class PercentQueryParserTests: XCTestCase {
 
     func testTaxWordWithoutPresetDoesNotInferRate() {
         let noPresetParser = PercentQueryParser(defaultTaxPercent: nil)
-        let outcome = noPresetParser.parse("100 plus tax")
-        XCTAssertTrue(outcome.candidates.isEmpty)
-        XCTAssertEqual(outcome.failureReason, .taxPresetMissing)
+        let samples = [
+            "100 plus tax",
+            "100 add tax",
+            "100 minus tax",
+            "100 + tax",
+            "100 - tax"
+        ]
+
+        for sample in samples {
+            let outcome = noPresetParser.parse(sample)
+            XCTAssertTrue(outcome.candidates.isEmpty, "Expected no candidates for: \(sample)")
+            XCTAssertEqual(outcome.failureReason, .taxPresetMissing, "Expected tax preset missing for: \(sample)")
+        }
     }
 
     func testTopIntentMarginAndMarkup() {
