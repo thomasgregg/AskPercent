@@ -247,7 +247,7 @@ final class CalculatorViewModel: ObservableObject {
         let taxTerms = ["tax", "sales tax", "vat", "gst", "iva", "steuer", "mwst", "ust", "umsatzsteuer", "umsatzst"]
         let contextTerms = [
             "plus", "with", "add", "added", "including", "incl", "inc",
-            "minus", "subtract", "subtracted", "less", "excluding", "excl", "ex", "without",
+            "minus", "subtract", "subtracted", "substract", "substracted", "reduce", "reduced", "less", "excluding", "excl", "ex", "without",
             "mit", "inkl", "zzgl", "zuzüglich", "zuzueglich",
             "ohne", "abzüglich", "abzueglich", "abzgl",
             "net", "gross", "netto", "brutto", "before tax", "after tax", "vor steuer", "nach steuer",

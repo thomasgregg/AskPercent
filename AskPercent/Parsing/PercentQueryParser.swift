@@ -258,7 +258,7 @@ final class PercentQueryParser {
     }
 
     private func parseSubtractPercent(in text: String) -> [ParseCandidate] {
-        let connectorPattern = #"(?:minus|less|reduce(?:d)?|weniger|abzüglich|abzueglich)"#
+        let connectorPattern = #"(?:minus|less|subtract(?:ed)?|substract(?:ed)?|reduce(?:d)?|weniger|abzüglich|abzueglich)"#
         let wordPattern = #"\b"# + numberCapture + #"\s*"# + connectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern
         let symbolPattern = #"\b"# + numberCapture + #"\s*-\s*"# + numberCapture + #"\s*"# + percentTokenPattern
 
@@ -728,7 +728,7 @@ final class PercentQueryParser {
     private func parseTipTaxVat(in text: String) -> [ParseCandidate] {
         var results = [ParseCandidate]()
 
-        let connectorPattern = #"(?:with|plus|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
+        let connectorPattern = #"(?:with|plus|add|added|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
         let kindPattern = #"(tip|tax|sales\s*tax|vat|gst|iva|trinkgeld|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
 
         let trailingKindPattern = #"\b"# + numberCapture + #"\s*"# + connectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + kindPattern + #"\b"#
@@ -753,7 +753,7 @@ final class PercentQueryParser {
             results.append(candidateForKind(base: base, percent: percent, kind: kind, confidence: 0.97))
         }
 
-        let rateOnlyPattern = #"\b(?:price|preis)?\s*(?:with|plus|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + kindPattern + #"\b"#
+        let rateOnlyPattern = #"\b(?:price|preis)?\s*(?:with|plus|add|added|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + kindPattern + #"\b"#
         for capture in captures(rateOnlyPattern, in: text) {
             guard let percent = double(capture[0]) else { continue }
             let kind = capture[1]
@@ -781,7 +781,7 @@ final class PercentQueryParser {
         let netContext = #"(?:net|before\s+tax|netto|vor\s+steuer)"#
         let grossContext = #"(?:gross|after\s+tax|brutto|nach\s+steuer)"#
         let plusConnector = #"(?:with|plus|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
-        let minusConnector = #"(?:minus|less|excluding|excl(?:uding)?|without|abzüglich|abzueglich|ohne)"#
+        let minusConnector = #"(?:minus|less|subtract(?:ed)?|substract(?:ed)?|reduce(?:d)?|excluding|excl(?:uding)?|without|abzüglich|abzueglich|ohne)"#
         let taxKeywordPattern = #"(tax|sales\s*tax|vat|gst|iva|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
 
         // Example: "100 net plus 19% vat", "100 netto zzgl 19% ust"
@@ -822,7 +822,7 @@ final class PercentQueryParser {
 
         let taxKeywordPattern = #"(tax|sales\s*tax|vat|gst|iva|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
         let plusConnectorPattern = #"(?:with|plus|add|added|including|incl(?:uding)?|inc|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
-        let minusConnectorPattern = #"(?:minus|subtract|subtracted|less|excluding|excl(?:uding)?|ex|without|abzüglich|abzueglich|ohne|abzgl)"#
+        let minusConnectorPattern = #"(?:minus|subtract(?:ed)?|substract(?:ed)?|reduce(?:d)?|less|excluding|excl(?:uding)?|ex|without|abzüglich|abzueglich|ohne|abzgl)"#
 
         let plusPattern = #"\b"# + numberCapture + #"\s*"# + plusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
         for capture in captures(plusPattern, in: text) {
@@ -1290,7 +1290,7 @@ final class PercentQueryParser {
 
         let contextHints = [
             "plus", "with", "add", "added", "including", "incl", "inc",
-            "minus", "subtract", "subtracted", "less", "excluding", "excl", "ex", "without",
+            "minus", "subtract", "subtracted", "substract", "substracted", "reduce", "reduced", "less", "excluding", "excl", "ex", "without",
             "mit", "inkl", "zzgl", "zuzüglich", "zuzueglich",
             "ohne", "abzüglich", "abzueglich", "abzgl",
             "net", "gross", "netto", "brutto", "before tax", "after tax", "vor steuer", "nach steuer",

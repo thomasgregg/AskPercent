@@ -61,6 +61,22 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertEqual(outcome.candidates.first?.intent.type, .subtractPercent)
     }
 
+    func testTopIntentSubtractPercentWithWords() throws {
+        let subtract = parser.parse("100 subtract 10%")
+        XCTAssertEqual(subtract.candidates.first?.intent.type, .subtractPercent)
+        guard let subtractIntent = subtract.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for 'subtract' wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: subtractIntent).value, 90, accuracy: 0.000_001)
+
+        let substract = parser.parse("100 substract 10%")
+        XCTAssertEqual(substract.candidates.first?.intent.type, .subtractPercent)
+        guard let substractIntent = substract.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for 'substract' wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: substractIntent).value, 90, accuracy: 0.000_001)
+    }
+
     func testTopIntentSubtractPercentWithSymbol() {
         let outcome = parser.parse("167 - 10%")
         XCTAssertEqual(outcome.candidates.first?.intent.type, .subtractPercent)
@@ -300,6 +316,13 @@ final class PercentQueryParserTests: XCTestCase {
             return XCTFail("Expected IVA candidate")
         }
         XCTAssertEqual(try calculator.calculate(intent: ivaIntent).value, 107, accuracy: 0.000_001)
+
+        let addTax = parser.parse("100 add 10% tax")
+        XCTAssertEqual(addTax.candidates.first?.intent.type, .tax)
+        guard let addTaxIntent = addTax.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for add connector")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: addTaxIntent).value, 110, accuracy: 0.000_001)
     }
 
     func testTaxPresetWithoutExplicitRateEnglish() throws {
@@ -346,6 +369,13 @@ final class PercentQueryParserTests: XCTestCase {
             return XCTFail("Expected subtract-percent candidate for minus-symbol tax using preset")
         }
         XCTAssertEqual(try calculator.calculate(intent: minusSymbolTaxIntent).value, 81, accuracy: 0.000_001)
+
+        let reduceTax = presetParser.parse("100 reduce tax")
+        XCTAssertEqual(reduceTax.candidates.first?.intent.type, .subtractPercent)
+        guard let reduceTaxIntent = reduceTax.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent candidate for reduce-tax using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: reduceTaxIntent).value, 81, accuracy: 0.000_001)
     }
 
     func testTaxPresetWithoutExplicitRateGerman() throws {
@@ -372,6 +402,7 @@ final class PercentQueryParserTests: XCTestCase {
             "100 plus tax",
             "100 add tax",
             "100 minus tax",
+            "100 reduce tax",
             "100 + tax",
             "100 - tax"
         ]
