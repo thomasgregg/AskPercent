@@ -53,4 +53,16 @@ final class QueryNormalizerTests: XCTestCase {
         XCTAssertEqual(spaced, 1234.56, accuracy: 0.000_001)
         XCTAssertEqual(apostrophe, 1234.56, accuracy: 0.000_001)
     }
+
+    func testParseNumberTreatsSingleDotThousandsAndKeepsLeadingZeroDecimals() {
+        guard let groupedDot = QueryNormalizer.parseNumber("1.234") else {
+            return XCTFail("Expected grouped-dot parsing")
+        }
+        guard let decimalLeadingZero = QueryNormalizer.parseNumber("0.125") else {
+            return XCTFail("Expected leading-zero decimal parsing")
+        }
+
+        XCTAssertEqual(groupedDot, 1234, accuracy: 0.000_001)
+        XCTAssertEqual(decimalLeadingZero, 0.125, accuracy: 0.000_001)
+    }
 }

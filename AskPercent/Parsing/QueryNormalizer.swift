@@ -85,6 +85,13 @@ struct QueryNormalizer {
                 } else {
                     value = parts.joined()
                 }
+            } else if parts.count == 2, let last = parts.last, last.count == 3 {
+                let first = String(parts[0])
+                // Treat 1.234 / 12.345 / 123.456 as grouped thousands.
+                // Keep explicit decimal forms like 0.125 intact.
+                if first != "0", first != "-0" {
+                    value = value.replacingOccurrences(of: ".", with: "")
+                }
             }
         }
 

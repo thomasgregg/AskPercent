@@ -1,189 +1,202 @@
 # AskPercent
 
-AskPercent is a native iOS SwiftUI MVP for deterministic natural-language percentage calculations.
+AskPercent is a fast, private percentage calculator for real-life questions.
+You type natural language, AskPercent gives clear answers instantly.
 
-## What It Does
-- Local-only parsing and calculation (no backend, no AI API)
-- Deterministic natural-language percentage intents (e.g. `25% of 167`, `from 80 to 96`, `markup 40 on cost 120`)
-- Supports both English and German query phrasing (e.g. `25% von 167`, `von 80 auf 96`, `85 plus 19% MwSt`)
-- App language setting with `System (Device)`, `English`, `Deutsch` (full UI + result text localization)
-- Number format setting: `System`, `US`, `European`
-- Live debounced parsing + result updates
-- Ambiguity handling with ranked alternative interpretations
-- Context-aware parse guidance (e.g. tax preset hints for plain `tax` words) without showing generic empty-state examples at the same time
-- Home input quality-of-life:
-  - autofocus when app opens / returning to Home
-  - trailing clear `x` button
-  - keyboard dismiss by tapping outside
-  - quick symbol chips (`%`, `+`, `-`, `,`, `.`) while editing
-- Result card quick actions:
-  - copy icon (copies full details)
-  - long-press context menu (`Copy Result`, `Copy Full Details`)
-- History, favorites, and settings persisted with `UserDefaults` + `Codable`
-- History grouped by day sections (`Today/Yesterday/date`)
-- Home tab order: `Home`, `Favorites`, `History`, `Settings`
-- Light and dark mode support
+No cloud. No account. No AI guesswork.  
+Just deterministic math you can trust.
 
-## Architecture
-- `AskPercent/Parsing`: deterministic parser pipeline
-- `AskPercent/Engine`: formula engine
-- `AskPercent/ViewModels`: MVVM orchestration (`CalculatorViewModel`)
-- `AskPercent/Views` + `AskPercent/Components`: SwiftUI UI
-- `AskPercent/Persistence`: local store for history/favorites/settings
-- `AskPercent/Tests`: unit tests for parser, normalization, ranking, and formulas
+## Why People Use AskPercent
+- Save time on everyday calculations (shopping, VAT/tax, discounts, pricing, margins).
+- Ask in plain English or German instead of translating problems into formulas.
+- See not only the result, but also explanation and formula.
+- Get local, privacy-first behavior: everything runs on your device.
 
-## Deterministic Parser Pipeline
-`PercentQueryParser` uses:
-1. Normalization (`QueryNormalizer`)
-2. Numeric token extraction (comma/dot decimal support, grouped number support)
-3. Regex/pattern matching per intent
-4. Candidate scoring + semantic boosts
-5. Confidence-ranked candidate list
-6. Ambiguity flag when top candidates are close
+## What AskPercent Can Do
+AskPercent supports all core percentage workflows in both English and German:
 
-If confidence is low or patterns fail, the app returns a helpful message instead of silently guessing.
+1. Percent of a number
+2. Add percent
+3. Subtract percent
+4. Percent change (old -> new)
+5. Discount between original and new value
+6. Reverse percent (find 100% / base value)
+7. Reverse percent with target percent (e.g. if 30% is 45, what is 50%?)
+8. Reverse percent to find a percent (e.g. if 40 is 10%, what percent is 50?)
+9. Relation percent (X is what percent of Y)
+10. Tip / tax / VAT
+11. Margin
+12. Markup / Aufschlag
 
-## Supported Intents
-- percent of a number
-- add percent to a number
-- subtract percent from a number
-- percent change from old to new
-- discount percent between original and new
-- reverse percent / find whole
-- reverse percent / find other target percent value
-- reverse percent / find percent for a target part
-- what percent is X of Y
-- tip / tax / VAT
-- margin
-- markup
+## Question Manual (Examples You Can Use Directly)
 
-Supported in both English and German with deterministic regex/pattern rules.
+### 1) Percent of a number
+- EN: `25% of 167`
+- EN: `what is 10% of 87336437476`
+- DE: `25% von 167`
+- DE: `wie viel sind 12,5% von 200`
 
-## Supported Query Scenarios (with examples)
-Use these directly in the input field.
+### 2) Add percent
+- EN: `167 plus 25%`
+- EN: `167 + 10%`
+- EN: `add 10% to 100`
+- EN: `increase by 10% 100`
+- DE: `167 plus 25 prozent`
 
-- Percent of a base value:
-  - EN: `25% of 167`, `what is 10% percent of 87336437476`
-  - DE: `25% von 167`, `wie viel sind 12,5% von 200`
-- Add percent to a value:
-  - EN: `167 plus 25%`, `167 + 10%`, `increase 100 by 20%`
-  - DE: `167 plus 25 prozent`
-- Subtract percent from a value:
-  - EN: `899 minus 12%`, `167 - 10%`, `decrease 100 by 20%`
-  - DE: `899 minus 12 prozent`
-- Percent change (old to new):
-  - EN: `from 80 to 96`, `before 100 now 120`, `was 80 now 96`
-  - DE: `von 80 auf 96`, `vorher 100 jetzt 120`, `war 80 jetzt 96`
-- Discount percent:
-  - EN: `I paid 134 instead of 179, what percent discount is that?`
-  - DE: `ich habe 134 statt 179 bezahlt`
-- Discount rate applied to a base:
-  - EN: `100 with 20% discount`, `20% discount on 100`
-  - DE: `100 mit 20% rabatt`, `20% rabatt auf 100`
-- Discount between original and new value:
-  - EN: `what is the discount from 179 to 134`
-  - DE: `wie hoch ist der rabatt von 179 auf 134`
-- What percent is X of Y (relation):
-  - EN: `41.75 is what percent of 167`, `100 of 200`
-  - DE: `41,75 sind wie viel prozent von 167`, `100 von 200`
-- Tip / tax / VAT with explicit rate:
-  - EN: `240 with 15% tip`, `85 plus 19% VAT`, `100 plus 7% sales tax`, `100 plus 7% gst`
-  - DE: `240 mit 15% trinkgeld`, `85 plus 19% mwst`, `preis inkl. 19% mwst`
-- Financial tax context (net/gross, before/after tax):
-  - EN: `100 net plus 19% vat`, `100 before tax plus 20% tax`, `120 after tax minus 20% tax`
-  - DE: `100 netto zzgl 19% ust`, `100 vor steuer plus 10% steuer`, `120 brutto minus 20% steuer`
-- Tax preset queries (when tax preset is enabled in Settings):
-  - EN: `100 plus tax`, `100 minus tax`, `100 inc vat`
-  - DE: `100 zzgl mwst`, `120 brutto ohne steuer`
-- Reverse percent: find the 100% value:
-  - EN: `if 30% is 45 what is 100%`, `10% is 5 - what is the total value?`, `20% is 30 what is the original amount`
-  - DE: `wenn 30 prozent sind 45 was sind 100 prozent`, `10 % sind 5 – wie groß ist der Gesamtwert?`, `20% sind 30 wie groß ist der grundbetrag`
-- Reverse percent: find another target percent value:
-  - EN: `if 30% is 45 what is 50%`, `if 30% is 45 what is 90%`, `if 10% is 50 what is 50%`
-  - DE: `wenn 30 prozent sind 45 was sind 50 prozent`
-- Reverse percent: find which percent a target part is:
-  - EN: `if 40 is 10% what is 50`, `if 40 is 10% what percent is 50`
-  - DE: `wenn 40 sind 10 prozent was sind 50`
-- Swapped reverse shorthand:
-  - EN: `20 is 115%`
-  - DE: `20 sind 115%`
-- Margin and markup:
-  - EN: `what margin is 40 on 120`, `what is the margin 40 on 120`, `what markup is 40 on cost 120`, `what is profit 40 on 120`
-  - DE: `was ist die marge 40 auf 120`, `was ist der aufschlag 40 auf kosten 120`, `was ist der gewinn von 40 auf 120`
-- Markup/Aufschlag rate applied to a base:
-  - EN: `100 with 20% markup`, `20% markup on 100`
-  - DE: `100 mit 20% aufschlag`, `20% aufschlag auf 100`
-- Margin/profit amount phrasing:
-  - EN: `how much is 10% margin on 134`, `how much is 10% profit on 134`, `what is 10% profit of 230`
-  - DE: `wie viel sind 10% marge auf 134`, `was ist 10% gewinn von 230`
-- Ambiguous shorthand (app shows alternatives):
-  - EN: `25% on 167`, `25 on 167`
-  - DE: `25% auf 167`
-- Decimal/grouped number formats:
-  - EN: `12.5% of 200`, `12.5% of 1'234.56`
-  - DE: `12,5% von 200`, `12,5% von 1 234,56`
-- Negative and zero percent inputs:
-  - EN: `-20% of 50`, `0% of 900`
-  - DE: `-20% von 50`, `0% von 900`
+### 3) Subtract percent
+- EN: `899 minus 12%`
+- EN: `167 - 10%`
+- EN: `subtract 10% from 100`
+- EN: `substract 10% from 100`
+- EN: `decrease by 10% 100`
+- EN: `reduce by 10% from 100`
+- DE: `899 minus 12 prozent`
+- DE: `reduziere 100 um 10 prozent`
+- DE: `100 reduziert 10 prozent`
 
-## Formula Engine
-Implemented formulas:
-- `percentOf = percent / 100 * base`
-- `addPercent = base * (1 + percent / 100)`
-- `subtractPercent = base * (1 - percent / 100)`
-- `percentChange = (new - old) / old * 100`
-- `discountPercent = (original - new) / original * 100`
-- `reversePercent = partial / (percent / 100)`
-- `reversePercentTarget = (knownPart / (knownPercent / 100)) * (targetPercent / 100)`
-- `reversePercentFindPercent = (targetPart * knownPercent) / knownPart`
-- `percentOfRelation = part / whole * 100`
-- `margin = profit / revenue * 100`
-- `markup = profit / cost * 100`
+### 4) Percent change (old to new)
+- EN: `from 80 to 96`
+- EN: `before 100 now 120`
+- EN: `was 80 now 96`
+- DE: `von 80 auf 96`
+- DE: `vorher 100 jetzt 120`
+- DE: `war 80 jetzt 96`
 
-## Persistence
-`LocalPersistenceStore` persists:
-- `history`
-- `favorites`
-- `settings` (language, decimal precision, formula visibility, haptics, number format, tax preset enabled/rate)
+### 5) Discount percent (original vs paid/new)
+- EN: `I paid 134 instead of 179, what percent discount is that?`
+- EN: `discount from 179 to 134`
+- DE: `ich habe 134 statt 179 bezahlt`
+- DE: `wie hoch ist der rabatt von 179 auf 134`
 
-## Testing
-Run from terminal:
+### 6) Discount rate on a base value
+- EN: `100 with 20% discount`
+- EN: `20% discount on 100`
+- EN: `100 with discount 20%`
+- EN: `discount 20% on 100`
+- DE: `100 mit 20% rabatt`
+- DE: `20% rabatt auf 100`
+- DE: `rabatt 20% auf 100`
+
+### 7) Reverse percent: find 100%
+- EN: `if 30% is 45 what is 100%`
+- EN: `10% is 5 what is the total`
+- EN: `20% is 40 how much is 100%`
+- DE: `wenn 30 prozent sind 45 was sind 100 prozent`
+- DE: `10 prozent sind 5 wie groß ist das ganze`
+- DE: `20 prozent sind 40 wie viel sind 100 prozent`
+
+### 8) Reverse percent: find a target percent value
+- EN: `if 30% is 45 what is 50%`
+- EN: `if 30% is 45 what is 90%`
+- EN: `if 10% is 50 what is 50%`
+- DE: `wenn 30 prozent sind 45 was sind 50 prozent`
+
+### 9) Reverse percent: find what percent a target part is
+- EN: `if 40 is 10% what is 50`
+- EN: `if 40 is 10% what percent is 50`
+- EN: `20 is 115%`
+- DE: `wenn 40 sind 10 prozent was sind 50`
+- DE: `20 sind 115%`
+
+### 10) Relation percent (X of Y)
+- EN: `41.75 is what percent of 167`
+- EN: `100 of 200`
+- EN: `100 out of 200`
+- DE: `41,75 sind wie viel prozent von 167`
+- DE: `100 von 200`
+- DE: `100 aus 200`
+
+### 11) Tip / tax / VAT (explicit rate)
+- EN: `240 with 15% tip`
+- EN: `85 plus 19% VAT`
+- EN: `100 add 10% tax`
+- EN: `100 minus 19% tax`
+- EN: `100 include 10% tax`
+- DE: `240 mit 15% trinkgeld`
+- DE: `85 plus 19% mwst`
+- DE: `100 plus 10% steuer`
+- DE: `100 minus 19% steuer`
+
+### 12) Tax financial context (net/gross)
+- EN: `100 net plus 19% vat`
+- EN: `100 before tax plus 20% tax`
+- EN: `120 after tax minus 20% tax`
+- EN: `120 gross minus 20% tax`
+- DE: `100 netto zzgl 19% ust`
+- DE: `100 vor steuer plus 10% steuer`
+- DE: `120 brutto minus 20% steuer`
+- DE: `120 nach steuer minus 20% steuer`
+
+### 13) Tax preset mode (optional in Settings)
+When Tax preset is enabled, you can omit the rate:
+- EN: `100 plus tax`
+- EN: `100 minus tax`
+- EN: `100 inc vat`
+- EN: `100 include tax`
+- DE: `100 zzgl mwst`
+- DE: `120 brutto ohne steuer`
+
+### 14) Margin and markup
+- EN: `what margin is 40 on 120`
+- EN: `what is the margin 40 on 120`
+- EN: `what markup is 40 on cost 120`
+- EN: `what is 10% profit of 230`
+- DE: `was ist die marge 40 auf 120`
+- DE: `was ist der aufschlag 40 auf kosten 120`
+- DE: `was ist 10% gewinn von 230`
+
+### 15) Negative and zero percent
+- EN: `-20% of 50`
+- EN: `0% of 900`
+- DE: `-20% von 50`
+- DE: `0% von 900`
+
+### 16) Decimal comma and grouped numbers
+- EN: `12.5% of 1'234.56`
+- DE: `12,5% von 1 234,56`
+- Also supported: grouped formats like `1.234`, `1 234`, `1'234`
+
+## Smart Behavior
+- **Live results**: calculates while you type.
+- **Ambiguity handling**: if a query can mean multiple things, AskPercent shows top interpretation and alternatives.
+- **No silent guessing**: if confidence is low, it shows guidance instead of inventing an answer.
+- **Copy output**: copy result-only or full details (including formula and breakdown).
+- **History and favorites**: saved locally for quick reuse.
+
+## Settings
+- Language: `System`, `English`, `Deutsch`
+- Number format: `System`, `US`, `European`
+- Decimal precision
+- Show/hide formula
+- Haptics
+- Tax preset (enable + preset rate)
+
+### Language fallback in `System`
+- If device/app locale starts with `de`, AskPercent uses German.
+- All other locales (for example Dutch) default to English.
+- Number formatting can still follow device locale when Number format is set to `System`.
+
+## Privacy
+All parsing, calculation, history, favorites, and settings are local on-device.
+AskPercent does not require a backend.
+
+## Getting Started
+1. Open `AskPercent.xcodeproj` in Xcode.
+2. Build and run the `AskPercent` scheme on iPhone simulator or device.
+3. Type a question in Home and get the result instantly.
+
+## Technical Notes (Short)
+- Native Swift + SwiftUI (iPhone-first)
+- Deterministic rule-based parser (normalization, tokenization, pattern matching, ranking, confidence)
+- Formula engine with strict math safety (including divide-by-zero handling)
+- Local persistence via `Codable + UserDefaults`
+- MVVM architecture
+
+## Tests
+Run:
 
 ```bash
-xcodebuild test -scheme AskPercent -project AskPercent.xcodeproj -destination 'platform=iOS Simulator,name=iPhone 17'
+xcodebuild test -scheme AskPercent -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max'
 ```
 
-Current test coverage includes:
-- normalization
-- number extraction
-- each parser intent
-- candidate ranking
-- ambiguity behavior
-- decimal comma inputs
-- grouped-number parsing (`1 234,56`, `1'234.56`)
-- reverse-percent variant phrasing (EN + DE), including:
-  - target-percent output (`if 10% is 50 what is 50%`)
-  - target-part-to-percent output (`if 40 is 10% what is 50`)
-- increase/decrease-by phrasing
-- now/then phrasing variants
-- discount/rabatt phrasing variants (rate and from-to forms)
-- markup/aufschlag rate phrasing variants
-- formula correctness
-- divide-by-zero edge cases
-
-## Project Structure
-```text
-AskPercent/
-  AppStoreAssets/
-  App/
-  Models/
-  Parsing/
-  Engine/
-  Persistence/
-  ViewModels/
-  Views/
-  Components/
-  Utilities/
-  Resources/
-  Tests/
-```
+Current suite includes parser coverage, normalization, formulas, candidate ranking, ambiguity handling, EN/DE phrasing variants, tax preset behavior, and edge cases.

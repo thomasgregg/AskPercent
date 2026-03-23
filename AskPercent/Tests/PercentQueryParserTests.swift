@@ -888,4 +888,177 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertTrue(types.contains(.percentOf))
         XCTAssertTrue(types.contains(.addPercent))
     }
+
+    func testEnglishDiscountRateKeywordFirstAndConnectorKeywordForms() throws {
+        let keywordFirst = parser.parse("discount 10% on 100")
+        XCTAssertEqual(keywordFirst.candidates.first?.intent.type, .subtractPercent)
+        guard let keywordFirstIntent = keywordFirst.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for keyword-first discount phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: keywordFirstIntent).value, 90, accuracy: 0.000_001)
+
+        let connectorKeyword = parser.parse("100 with discount 10%")
+        XCTAssertEqual(connectorKeyword.candidates.first?.intent.type, .subtractPercent)
+        guard let connectorKeywordIntent = connectorKeyword.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for connector+keyword discount phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: connectorKeywordIntent).value, 90, accuracy: 0.000_001)
+    }
+
+    func testEnglishMarkupRateKeywordFirstAndConnectorKeywordForms() throws {
+        let keywordFirst = parser.parse("markup 10% on 100")
+        XCTAssertEqual(keywordFirst.candidates.first?.intent.type, .addPercent)
+        guard let keywordFirstIntent = keywordFirst.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for keyword-first markup phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: keywordFirstIntent).value, 110, accuracy: 0.000_001)
+
+        let connectorKeyword = parser.parse("100 with markup 10%")
+        XCTAssertEqual(connectorKeyword.candidates.first?.intent.type, .addPercent)
+        guard let connectorKeywordIntent = connectorKeyword.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for connector+keyword markup phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: connectorKeywordIntent).value, 110, accuracy: 0.000_001)
+    }
+
+    func testGermanDiscountRateKeywordFirstAndConnectorKeywordForms() throws {
+        let keywordFirst = parser.parse("rabatt 10% auf 100")
+        XCTAssertEqual(keywordFirst.candidates.first?.intent.type, .subtractPercent)
+        guard let keywordFirstIntent = keywordFirst.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for German keyword-first rabatt phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: keywordFirstIntent).value, 90, accuracy: 0.000_001)
+
+        let connectorKeyword = parser.parse("100 mit rabatt 10%")
+        XCTAssertEqual(connectorKeyword.candidates.first?.intent.type, .subtractPercent)
+        guard let connectorKeywordIntent = connectorKeyword.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for German connector+keyword rabatt phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: connectorKeywordIntent).value, 90, accuracy: 0.000_001)
+    }
+
+    func testGermanAufschlagRateKeywordFirstAndConnectorKeywordForms() throws {
+        let keywordFirst = parser.parse("aufschlag 10% auf 100")
+        XCTAssertEqual(keywordFirst.candidates.first?.intent.type, .addPercent)
+        guard let keywordFirstIntent = keywordFirst.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for German keyword-first aufschlag phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: keywordFirstIntent).value, 110, accuracy: 0.000_001)
+
+        let connectorKeyword = parser.parse("100 mit aufschlag 10%")
+        XCTAssertEqual(connectorKeyword.candidates.first?.intent.type, .addPercent)
+        guard let connectorKeywordIntent = connectorKeyword.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for German connector+keyword aufschlag phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: connectorKeywordIntent).value, 110, accuracy: 0.000_001)
+    }
+
+    func testRelationOutOfAndAusPatterns() throws {
+        let outOf = parser.parse("100 out of 200")
+        XCTAssertEqual(outOf.candidates.first?.intent.type, .percentOfRelation)
+        guard let outOfIntent = outOf.candidates.first?.intent else {
+            return XCTFail("Expected relation candidate for out-of phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: outOfIntent).value, 50, accuracy: 0.000_001)
+
+        let aus = parser.parse("100 aus 200")
+        XCTAssertEqual(aus.candidates.first?.intent.type, .percentOfRelation)
+        guard let ausIntent = aus.candidates.first?.intent else {
+            return XCTFail("Expected relation candidate for aus phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: ausIntent).value, 50, accuracy: 0.000_001)
+    }
+
+    func testTaxIncludeConnectors() throws {
+        let includeTax = parser.parse("100 include 10% tax")
+        XCTAssertEqual(includeTax.candidates.first?.intent.type, .tax)
+        guard let includeTaxIntent = includeTax.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for include connector")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: includeTaxIntent).value, 110, accuracy: 0.000_001)
+
+        let includedTax = parser.parse("100 included 10% tax")
+        XCTAssertEqual(includedTax.candidates.first?.intent.type, .tax)
+        guard let includedTaxIntent = includedTax.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for included connector")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: includedTaxIntent).value, 110, accuracy: 0.000_001)
+    }
+
+    func testTaxPresetIncludeWithoutRate() throws {
+        let presetParser = PercentQueryParser(defaultTaxPercent: 19)
+        let inclVat = presetParser.parse("100 incl vat")
+        XCTAssertEqual(inclVat.candidates.first?.intent.type, .vat)
+        guard let inclVatIntent = inclVat.candidates.first?.intent else {
+            return XCTFail("Expected VAT candidate for incl VAT using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: inclVatIntent).value, 119, accuracy: 0.000_001)
+
+        let includeTax = presetParser.parse("100 include tax")
+        XCTAssertEqual(includeTax.candidates.first?.intent.type, .tax)
+        guard let includeTaxIntent = includeTax.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for include tax using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: includeTaxIntent).value, 119, accuracy: 0.000_001)
+    }
+
+    func testCommandAndByFirstOrderPatterns() throws {
+        let addTo = parser.parse("add 10% to 100")
+        XCTAssertEqual(addTo.candidates.first?.intent.type, .addPercent)
+        guard let addToIntent = addTo.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for command add-to wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: addToIntent).value, 110, accuracy: 0.000_001)
+
+        let subtractFrom = parser.parse("subtract 10% from 100")
+        XCTAssertEqual(subtractFrom.candidates.first?.intent.type, .subtractPercent)
+        guard let subtractFromIntent = subtractFrom.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for command subtract-from wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: subtractFromIntent).value, 90, accuracy: 0.000_001)
+
+        let substractFrom = parser.parse("substract 10% from 100")
+        XCTAssertEqual(substractFrom.candidates.first?.intent.type, .subtractPercent)
+        guard let substractFromIntent = substractFrom.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for command substract-from wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: substractFromIntent).value, 90, accuracy: 0.000_001)
+
+        let increaseByFirst = parser.parse("increase by 10% 100")
+        XCTAssertEqual(increaseByFirst.candidates.first?.intent.type, .addPercent)
+        guard let increaseByFirstIntent = increaseByFirst.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for increase-by-first wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: increaseByFirstIntent).value, 110, accuracy: 0.000_001)
+
+        let decreaseByFirst = parser.parse("decrease by 10% 100")
+        XCTAssertEqual(decreaseByFirst.candidates.first?.intent.type, .subtractPercent)
+        guard let decreaseByFirstIntent = decreaseByFirst.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for decrease-by-first wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: decreaseByFirstIntent).value, 90, accuracy: 0.000_001)
+
+        let reduceByFirst = parser.parse("reduce by 10% from 100")
+        XCTAssertEqual(reduceByFirst.candidates.first?.intent.type, .subtractPercent)
+        guard let reduceByFirstIntent = reduceByFirst.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for reduce-by-first wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: reduceByFirstIntent).value, 90, accuracy: 0.000_001)
+    }
+
+    func testGermanReduceVerbForms() throws {
+        let reduziert = parser.parse("100 reduziert 10 prozent")
+        XCTAssertEqual(reduziert.candidates.first?.intent.type, .subtractPercent)
+        guard let reduziertIntent = reduziert.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for reduziert wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: reduziertIntent).value, 90, accuracy: 0.000_001)
+
+        let reduziere = parser.parse("reduziere 100 um 10 prozent")
+        XCTAssertEqual(reduziere.candidates.first?.intent.type, .subtractPercent)
+        guard let reduziereIntent = reduziere.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for reduziere-um wording")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: reduziereIntent).value, 90, accuracy: 0.000_001)
+    }
 }
