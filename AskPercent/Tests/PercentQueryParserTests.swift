@@ -815,6 +815,22 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertEqual(germanResult.value, 154.32, accuracy: 0.000_001)
     }
 
+    func testRegressionMixedLocaleSeparatorsInOneToken() throws {
+        let englishMixed = parser.parse("1,234.56 plus 10%")
+        XCTAssertEqual(englishMixed.candidates.first?.intent.type, .addPercent)
+        guard let englishIntent = englishMixed.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for mixed English separators")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: englishIntent).value, 1_358.016, accuracy: 0.000_001)
+
+        let germanMixed = parser.parse("1.234,56 plus 10%")
+        XCTAssertEqual(germanMixed.candidates.first?.intent.type, .addPercent)
+        guard let germanIntent = germanMixed.candidates.first?.intent else {
+            return XCTFail("Expected add-percent for mixed German separators")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: germanIntent).value, 1_358.016, accuracy: 0.000_001)
+    }
+
     func testDecimalPercentInputs() throws {
         let dotOutcome = parser.parse("12.5% of 200")
         XCTAssertEqual(dotOutcome.candidates.first?.intent.type, .percentOf)
@@ -829,6 +845,22 @@ final class PercentQueryParserTests: XCTestCase {
             return XCTFail("Expected decimal-comma percent candidate")
         }
         XCTAssertEqual(try calculator.calculate(intent: commaIntent).value, 25, accuracy: 0.000_001)
+    }
+
+    func testRegressionThreeDigitDecimalPercentIsNotGroupedAsThousands() throws {
+        let dotOutcome = parser.parse("12.345% of 100")
+        XCTAssertEqual(dotOutcome.candidates.first?.intent.type, .percentOf)
+        guard let dotIntent = dotOutcome.candidates.first?.intent else {
+            return XCTFail("Expected percent-of candidate for 12.345%")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: dotIntent).value, 12.345, accuracy: 0.000_001)
+
+        let commaOutcome = parser.parse("12,345% von 100")
+        XCTAssertEqual(commaOutcome.candidates.first?.intent.type, .percentOf)
+        guard let commaIntent = commaOutcome.candidates.first?.intent else {
+            return XCTFail("Expected percent-of candidate for 12,345%")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: commaIntent).value, 12.345, accuracy: 0.000_001)
     }
 
     func testNegativeAndZeroPercentValues() throws {
@@ -893,9 +925,43 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertEqual(parser.parse("20% sind 30 wie groß ist der grundbetrag").candidates.first?.intent.type, .reversePercent)
     }
 
+    func testRegressionReversePercentSupportsEqualsSign() throws {
+        let outcome = parser.parse("30% = 45 what is 100%")
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .reversePercent)
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected reverse-percent candidate for equals syntax")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: intent).value, 150, accuracy: 0.000_001)
+    }
+
     func testVatInclusivePhrasing() {
-        XCTAssertEqual(parser.parse("price incl. 19% VAT").candidates.first?.intent.type, .vat)
-        XCTAssertEqual(parser.parse("preis inkl. 19% mwst").candidates.first?.intent.type, .vat)
+        XCTAssertEqual(parser.parse("100 incl. 19% VAT").candidates.first?.intent.type, .vat)
+        XCTAssertEqual(parser.parse("100 inkl. 19% mwst").candidates.first?.intent.type, .vat)
+    }
+
+    func testRegressionPercentFirstTaxAndTipPhrases() throws {
+        let taxPercentFirst = parser.parse("19% tax on 100")
+        XCTAssertEqual(taxPercentFirst.candidates.first?.intent.type, .tax)
+        XCTAssertFalse(taxPercentFirst.isAmbiguous)
+        guard let taxPercentFirstIntent = taxPercentFirst.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for percent-first tax phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: taxPercentFirstIntent).value, 119, accuracy: 0.000_001)
+
+        let taxKeywordFirst = parser.parse("tax 19% on 100")
+        XCTAssertEqual(taxKeywordFirst.candidates.first?.intent.type, .tax)
+        XCTAssertFalse(taxKeywordFirst.isAmbiguous)
+        guard let taxKeywordFirstIntent = taxKeywordFirst.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for keyword-first tax phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: taxKeywordFirstIntent).value, 119, accuracy: 0.000_001)
+
+        let tipPercentFirst = parser.parse("15% tip on 240")
+        XCTAssertEqual(tipPercentFirst.candidates.first?.intent.type, .tip)
+        guard let tipPercentFirstIntent = tipPercentFirst.candidates.first?.intent else {
+            return XCTFail("Expected tip candidate for percent-first tip phrase")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: tipPercentFirstIntent).value, 276, accuracy: 0.000_001)
     }
 
     func testMarginNounVariants() {
@@ -1069,6 +1135,44 @@ final class PercentQueryParserTests: XCTestCase {
             return XCTFail("Expected subtract-percent for reduce-by-first wording")
         }
         XCTAssertEqual(try calculator.calculate(intent: reduceByFirstIntent).value, 90, accuracy: 0.000_001)
+    }
+
+    func testRegressionReducedByAndMinusTaxFromPhrases() throws {
+        let reducedBy = parser.parse("100 reduced by 19%")
+        XCTAssertEqual(reducedBy.candidates.first?.intent.type, .subtractPercent)
+        guard let reducedByIntent = reducedBy.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for reduced-by phrasing")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: reducedByIntent).value, 81, accuracy: 0.000_001)
+
+        let minusTaxFrom = parser.parse("minus 19% tax from 100")
+        XCTAssertEqual(minusTaxFrom.candidates.first?.intent.type, .subtractPercent)
+        guard let minusTaxFromIntent = minusTaxFrom.candidates.first?.intent else {
+            return XCTFail("Expected subtract-percent for minus-tax-from phrasing")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: minusTaxFromIntent).value, 81, accuracy: 0.000_001)
+    }
+
+    func testRegressionStatementRelationOutranksPercentOf() throws {
+        let english = parser.parse("100 is 10% of 1000")
+        XCTAssertEqual(english.candidates.first?.intent.type, .percentOfRelation)
+        guard let englishIntent = english.candidates.first?.intent else {
+            return XCTFail("Expected relation candidate for English statement form")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: englishIntent).value, 10, accuracy: 0.000_001)
+
+        let german = parser.parse("100 ist 10% von 1000")
+        XCTAssertEqual(german.candidates.first?.intent.type, .percentOfRelation)
+        guard let germanIntent = german.candidates.first?.intent else {
+            return XCTFail("Expected relation candidate for German statement form")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: germanIntent).value, 10, accuracy: 0.000_001)
+    }
+
+    func testRegressionNoRateOnlyTaxGuessing() {
+        let outcome = parser.parse("price incl. 19% VAT")
+        XCTAssertTrue(outcome.candidates.isEmpty)
+        XCTAssertEqual(outcome.failureReason, .lowConfidence)
     }
 
     func testGermanReduceVerbForms() throws {

@@ -8,7 +8,7 @@ struct NumericToken: Equatable {
 }
 
 struct QueryNormalizer {
-    private let punctuationPattern = #"[?=!;:]"#
+    private let punctuationPattern = #"[?!;:]"#
     private let spacesPattern = #"\s+"#
 
     func normalize(_ query: String) -> String {
@@ -31,7 +31,7 @@ struct QueryNormalizer {
     }
 
     func extractNumericTokens(from text: String) -> [NumericToken] {
-        let pattern = #"[-+]?\d+(?:[.,]\d+)?(?:\s*%)?"#
+        let pattern = #"[-+]?\d+(?:[.,']\d+)*(?:\s*%)?"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
         let fullRange = NSRange(text.startIndex..<text.endIndex, in: text)
 
