@@ -251,6 +251,18 @@ final class PercentQueryParserTests: XCTestCase {
         XCTAssertEqual(outcome.candidates.first?.intent.type, .percentOfRelation)
     }
 
+    func testEnglishRelationWithPercentSymbol() throws {
+        let outcome = parser.parse("100 is what % of 1000")
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .percentOfRelation)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected relation candidate for English '%' phrasing")
+        }
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 10, accuracy: 0.000_001)
+        XCTAssertTrue(result.isPercentValue)
+    }
+
     func testTopIntentRelationShorthand() throws {
         let outcome = parser.parse("100 of 200")
         XCTAssertEqual(outcome.candidates.first?.intent.type, .percentOfRelation)
@@ -665,6 +677,19 @@ final class PercentQueryParserTests: XCTestCase {
         }
         let result = try calculator.calculate(intent: intent)
         XCTAssertEqual(result.value, 25, accuracy: 0.000_001)
+    }
+
+    func testGermanRelationWithPercentSymbol() throws {
+        let outcome = parser.parse("100 ist wieviel % von 1000")
+        XCTAssertEqual(outcome.candidates.first?.intent.type, .percentOfRelation)
+
+        guard let intent = outcome.candidates.first?.intent else {
+            return XCTFail("Expected relation candidate for German '%' phrasing")
+        }
+
+        let result = try calculator.calculate(intent: intent)
+        XCTAssertEqual(result.value, 10, accuracy: 0.000_001)
+        XCTAssertTrue(result.isPercentValue)
     }
 
     func testGermanRelationShorthand() throws {

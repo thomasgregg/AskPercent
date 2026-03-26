@@ -753,13 +753,13 @@ final class PercentQueryParser {
     }
 
     private func parseRelation(in text: String) -> [ParseCandidate] {
-        let directPattern = #"\b"# + numberCapture + #"\s+is\s+what\s+percent\s+of\s+"# + numberCapture + #"\b"#
-        let inversePattern = #"\bwhat\s+percent\s+is\s+"# + numberCapture + #"\s+of\s+"# + numberCapture + #"\b"#
+        let directPattern = #"\b"# + numberCapture + #"\s+is\s+what\s+(?:percent|%)\s+of\s+"# + numberCapture + #"\b"#
+        let inversePattern = #"\bwhat\s+(?:percent|%)\s+is\s+"# + numberCapture + #"\s+of\s+"# + numberCapture + #"\b"#
         let shorthandPattern = #"\b"# + numberCapture + #"\s+of\s+"# + numberCapture + #"\b"#
         let outOfPattern = #"\b"# + numberCapture + #"\s+out\s+of\s+"# + numberCapture + #"\b"#
 
-        let germanDirectPattern = #"\b"# + numberCapture + #"\s+(?:sind|ist)\s+(?:wie\s+viel|wieviel)\s+prozent\s+von\s+"# + numberCapture + #"\b"#
-        let germanInversePattern = #"\b(?:wie\s+viel|wieviel)\s+prozent\s+(?:sind|ist)\s+"# + numberCapture + #"\s+von\s+"# + numberCapture + #"\b"#
+        let germanDirectPattern = #"\b"# + numberCapture + #"\s+(?:sind|ist)\s+(?:wie\s+viel|wieviel)\s+(?:prozent|%)\s+von\s+"# + numberCapture + #"\b"#
+        let germanInversePattern = #"\b(?:wie\s+viel|wieviel)\s+(?:prozent|%)\s+(?:sind|ist)\s+"# + numberCapture + #"\s+von\s+"# + numberCapture + #"\b"#
         let germanShorthandPattern = #"\b"# + numberCapture + #"\s+von\s+"# + numberCapture + #"\b"#
         let germanAusPattern = #"\b"# + numberCapture + #"\s+aus\s+"# + numberCapture + #"\b"#
 
