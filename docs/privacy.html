@@ -4,85 +4,47 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AskPercent Privacy Policy</title>
-    <style>
-      :root {
-        color-scheme: light dark;
-        --bg: #f2f2f7;
-        --card: #ffffff;
-        --text: #111111;
-        --muted: #5f6368;
-        --accent: #0a84ff;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #000000;
-          --card: #1c1c1e;
-          --text: #f5f5f7;
-          --muted: #a1a1aa;
-          --accent: #0a84ff;
-        }
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
-          Roboto, Helvetica, Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-      }
-      .wrap {
-        max-width: 860px;
-        margin: 0 auto;
-        padding: 48px 20px 60px;
-      }
-      .card {
-        background: var(--card);
-        border-radius: 18px;
-        padding: 28px;
-      }
-      h1 {
-        margin: 0 0 8px;
-        font-size: clamp(2rem, 4vw, 3rem);
-      }
-      h2 {
-        margin: 20px 0 8px;
-      }
-      p,
-      li {
-        line-height: 1.5;
-      }
-      .muted {
-        color: var(--muted);
-      }
-      a {
-        color: var(--accent);
-      }
-    </style>
+    <meta
+      name="description"
+      content="Privacy policy for AskPercent. Learn how data is handled in the app."
+    />
+    <meta name="theme-color" content="#1f80ff" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="wrap">
-      <section class="card">
-        <h1>AskPercent Privacy Policy</h1>
-        <p class="muted">Last updated: March 21, 2026</p>
+    <main class="page">
+      <header class="topbar">
+        <a class="brand" href="./index.html" aria-label="AskPercent Home">
+          <span class="badge">%</span>
+          <span>AskPercent</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href="./index.html">Home</a>
+          <a href="./support.html">Support</a>
+          <a href="https://github.com/thomasgregg/AskPercent">GitHub</a>
+        </nav>
+      </header>
+
+      <section class="panel content">
+        <h1>Privacy Policy</h1>
+        <p class="updated">Last updated: March 26, 2026</p>
 
         <p>
-          AskPercent is designed to work locally on your device. We do not run
-          a backend service for app calculations.
+          AskPercent is designed for local use. Percentage parsing and
+          calculations run on your device.
         </p>
 
         <h2>Data Collection</h2>
         <ul>
-          <li>We do not collect personal data from inside the app.</li>
+          <li>We do not collect personal data from app usage.</li>
           <li>Queries, history, favorites, and settings are stored locally on your device.</li>
           <li>We do not sell your data.</li>
         </ul>
 
         <h2>Third-Party Services</h2>
         <ul>
-          <li>No analytics SDK is required for core functionality.</li>
-          <li>When you visit GitHub links, GitHub's own policies apply.</li>
+          <li>No analytics SDK is required for core calculations.</li>
+          <li>If you visit GitHub links, GitHub policies apply there.</li>
         </ul>
 
         <h2>Contact</h2>
@@ -93,6 +55,8 @@
           >.
         </p>
       </section>
+
+      <footer class="footer">&copy; 2026 Thomas Gregg</footer>
     </main>
   </body>
 </html>

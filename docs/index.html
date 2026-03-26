@@ -3,162 +3,97 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AskPercent</title>
+    <title>AskPercent - Percentage Calculator for iPhone</title>
     <meta
       name="description"
-      content="AskPercent is a natural-language percentage calculator for iPhone."
+      content="AskPercent is a natural-language percentage calculator for iPhone. Ask plain-English or German percentage questions and get instant local results."
     />
-    <style>
-      :root {
-        color-scheme: light dark;
-        --bg: #f2f2f7;
-        --card: #ffffff;
-        --text: #111111;
-        --muted: #5f6368;
-        --accent: #0a84ff;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #000000;
-          --card: #1c1c1e;
-          --text: #f5f5f7;
-          --muted: #a1a1aa;
-          --accent: #0a84ff;
-        }
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
-          Roboto, Helvetica, Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-      }
-
-      .wrap {
-        max-width: 860px;
-        margin: 0 auto;
-        padding: 48px 20px 60px;
-      }
-
-      .card {
-        background: var(--card);
-        border-radius: 18px;
-        padding: 28px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-      }
-
-      h1 {
-        margin: 0 0 10px;
-        font-size: clamp(2rem, 4vw, 3rem);
-      }
-
-      h2 {
-        margin: 0 0 12px;
-        font-size: 1.4rem;
-      }
-
-      p {
-        margin: 0 0 12px;
-        line-height: 1.5;
-      }
-
-      .muted {
-        color: var(--muted);
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-        gap: 14px;
-        margin-top: 16px;
-      }
-
-      .tile {
-        background: color-mix(in oklab, var(--card) 92%, var(--accent) 8%);
-        border-radius: 12px;
-        padding: 14px;
-      }
-
-      .links {
-        margin-top: 22px;
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-
-      a.button {
-        text-decoration: none;
-        color: white;
-        background: var(--accent);
-        padding: 10px 14px;
-        border-radius: 10px;
-        font-weight: 600;
-      }
-
-      a.text {
-        color: var(--accent);
-        text-decoration: none;
-        font-weight: 600;
-      }
-
-      footer {
-        margin-top: 18px;
-        color: var(--muted);
-        font-size: 0.93rem;
-      }
-    </style>
+    <meta name="theme-color" content="#1f80ff" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="wrap">
-      <section class="card">
-        <h1>AskPercent</h1>
-        <p class="muted">
-          Natural-language percentage calculator for iPhone.
-        </p>
-        <p>
-          Ask real questions like “25% of 167”, “from 80 to 96”, or
-          “margin 40 on 120” and get instant, deterministic results with
-          explanation and formula.
-        </p>
+    <main class="page">
+      <header class="topbar">
+        <a class="brand" href="./index.html" aria-label="AskPercent Home">
+          <span class="badge">%</span>
+          <span>AskPercent</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href="./support.html">Support</a>
+          <a href="./privacy.html">Privacy</a>
+          <a href="https://github.com/thomasgregg/AskPercent">GitHub</a>
+        </nav>
+      </header>
 
-        <div class="grid">
-          <div class="tile">
-            <h2>Fast & Local</h2>
-            <p class="muted">
-              Fully on-device parsing and calculation. No backend required.
-            </p>
+      <section class="panel hero">
+        <div>
+          <h1>Percentage math,<br />asked naturally.</h1>
+          <p class="subtitle">
+            The fast, deterministic percentage calculator for iPhone.
+          </p>
+          <p class="lead">
+            Ask questions like "25% of 167", "from 80 to 96", "if 30% is 45 what
+            is 90%", or "100 plus tax". AskPercent parses your input on-device and
+            returns a clear answer, explanation, and formula instantly.
+          </p>
+
+          <div class="chips" aria-label="Example queries">
+            <span class="chip">25% of 167</span>
+            <span class="chip">167 plus 25%</span>
+            <span class="chip">from 80 to 96</span>
+            <span class="chip">41.75 is what % of 167</span>
+            <span class="chip">was ist die marge 40 auf 120</span>
+            <span class="chip">100 plus tax</span>
           </div>
-          <div class="tile">
-            <h2>Clear Results</h2>
-            <p class="muted">
-              Answer, explanation, formula, and optional breakdown in one card.
-            </p>
-          </div>
-          <div class="tile">
-            <h2>English + German</h2>
-            <p class="muted">
-              Supports both languages and locale-based number formatting.
-            </p>
+
+          <div class="cta-row">
+            <a class="btn-primary" href="./support.html">Get Support</a>
+            <a class="btn-secondary" href="./privacy.html">Read Privacy Policy</a>
           </div>
         </div>
 
-        <div class="links">
-          <a class="button" href="./support.html">Support</a>
-          <a class="text" href="./privacy.html">Privacy Policy</a>
-          <a class="text" href="https://github.com/thomasgregg/AskPercent"
-            >GitHub</a
-          >
+        <aside class="preview" aria-label="Sample result preview">
+          <div class="preview-title">Sample Results</div>
+          <div class="preview-row">
+            <div class="preview-q">240 with 15% tip</div>
+            <div class="preview-a">Total: 276</div>
+          </div>
+          <div class="preview-row">
+            <div class="preview-q">from 96 to 80</div>
+            <div class="preview-a">Change: -16.67%</div>
+          </div>
+          <div class="preview-row">
+            <div class="preview-q">if 30% is 45 what is 90%</div>
+            <div class="preview-a">Result: 135</div>
+          </div>
+        </aside>
+
+        <div class="grid" role="list" aria-label="Highlights">
+          <article class="tile" role="listitem">
+            <h3>Deterministic Parser</h3>
+            <p>
+              Rule-based interpretation with confidence scoring and ambiguity
+              handling. No AI API required.
+            </p>
+          </article>
+          <article class="tile" role="listitem">
+            <h3>Local and Private</h3>
+            <p>
+              Parsing and calculations run directly on your device. History,
+              favorites, and settings stay local.
+            </p>
+          </article>
+          <article class="tile" role="listitem">
+            <h3>Built for Real Questions</h3>
+            <p>
+              Supports discounts, tax/VAT, margin, markup, reverse percent,
+              and relation questions in English and German.
+            </p>
+          </article>
         </div>
       </section>
-      <footer>
-        © 2026 Thomas Gregg
-      </footer>
+
+      <footer class="footer">&copy; 2026 Thomas Gregg</footer>
     </main>
   </body>
 </html>

@@ -1,0 +1,327 @@
+:root {
+  --bg: #f3f4f8;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: #ffffff;
+  --stroke: rgba(21, 31, 56, 0.08);
+  --text: #0f172a;
+  --muted: #5b6478;
+  --blue: #1f80ff;
+  --blue-strong: #0e66e7;
+  --chip: #eaf2ff;
+  --shadow: 0 22px 48px rgba(26, 40, 73, 0.12);
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #070b14;
+    --surface: rgba(16, 22, 36, 0.82);
+    --surface-strong: #131a2b;
+    --stroke: rgba(134, 151, 188, 0.2);
+    --text: #edf2ff;
+    --muted: #a8b6d6;
+    --blue: #4ca2ff;
+    --blue-strong: #1f80ff;
+    --chip: rgba(60, 122, 216, 0.2);
+    --shadow: 0 22px 48px rgba(0, 0, 0, 0.45);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 700px at -10% -15%, rgba(31, 128, 255, 0.26), transparent 55%),
+    radial-gradient(900px 600px at 110% -25%, rgba(89, 149, 255, 0.2), transparent 55%),
+    var(--bg);
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.page {
+  width: min(1120px, calc(100% - 2.5rem));
+  margin: 1.4rem auto 2.5rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.58rem;
+  color: var(--text);
+  font-weight: 760;
+  letter-spacing: -0.02em;
+}
+
+.badge {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.58rem;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.2rem;
+  background: linear-gradient(155deg, #62a8ff 0%, #3f83ea 55%, #2c69cf 100%);
+  box-shadow: 0 10px 18px rgba(24, 85, 170, 0.3);
+}
+
+.nav {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.nav a {
+  color: var(--muted);
+  font-weight: 610;
+}
+
+.panel {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+}
+
+.hero {
+  padding: clamp(1.4rem, 2.6vw, 2.4rem);
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: clamp(1rem, 2.8vw, 2.2rem);
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 5.8vw, 4.2rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.subtitle {
+  margin: 0.9rem 0 0;
+  font-size: clamp(1.02rem, 2.4vw, 1.35rem);
+  color: var(--muted);
+  max-width: 42ch;
+}
+
+.lead {
+  margin-top: 1.1rem;
+  font-size: clamp(1rem, 2.1vw, 1.23rem);
+  line-height: 1.52;
+  max-width: 62ch;
+}
+
+.chips {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.chip {
+  background: var(--chip);
+  border: 1px solid color-mix(in oklab, var(--blue) 20%, transparent);
+  color: color-mix(in oklab, var(--text) 72%, var(--blue));
+  border-radius: 999px;
+  padding: 0.4rem 0.78rem;
+  font-size: 0.92rem;
+  font-weight: 640;
+}
+
+.cta-row {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.72rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-weight: 700;
+  padding: 0.7rem 1.02rem;
+}
+
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(165deg, var(--blue) 0%, var(--blue-strong) 100%);
+  box-shadow: 0 12px 28px rgba(31, 128, 255, 0.32);
+}
+
+.btn-secondary {
+  color: var(--text);
+  border: 1px solid var(--stroke);
+  background: color-mix(in oklab, var(--surface-strong) 88%, var(--blue) 12%);
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+  text-decoration: none;
+}
+
+.preview {
+  align-self: stretch;
+  border: 1px solid var(--stroke);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--surface-strong) 88%, var(--blue) 12%);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.preview-title {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.preview-row {
+  padding: 0.64rem 0.72rem;
+  border-radius: 11px;
+  border: 1px solid color-mix(in oklab, var(--stroke) 78%, transparent);
+  background: color-mix(in oklab, var(--surface-strong) 92%, var(--blue) 8%);
+}
+
+.preview-q {
+  color: var(--muted);
+  font-size: 0.84rem;
+  margin-bottom: 0.25rem;
+}
+
+.preview-a {
+  font-size: 1.14rem;
+  font-weight: 760;
+  letter-spacing: -0.02em;
+}
+
+.grid {
+  margin-top: 1.2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.82rem;
+}
+
+.hero > .grid {
+  grid-column: 1 / -1;
+}
+
+.tile {
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--surface-strong) 92%, var(--blue) 8%);
+  padding: 1rem;
+}
+
+.tile h3 {
+  margin: 0;
+  font-size: 1.16rem;
+  letter-spacing: -0.02em;
+}
+
+.tile p {
+  margin: 0.52rem 0 0;
+  color: var(--muted);
+  line-height: 1.44;
+}
+
+.content {
+  margin-top: 1.2rem;
+  padding: clamp(1.2rem, 2.2vw, 2rem);
+}
+
+.content h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4.8vw, 3rem);
+  letter-spacing: -0.03em;
+}
+
+.content .updated {
+  margin-top: 0.4rem;
+  color: var(--muted);
+}
+
+.content h2 {
+  margin: 1.4rem 0 0.54rem;
+  font-size: 1.2rem;
+}
+
+.content p,
+.content li {
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.content ul {
+  margin: 0.25rem 0 0.8rem;
+}
+
+.footer {
+  margin-top: 1.2rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    width: calc(100% - 1.4rem);
+    margin-top: 1rem;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .nav {
+    gap: 0.68rem;
+  }
+
+  .hero,
+  .content {
+    border-radius: 22px;
+  }
+}
