@@ -1,12 +1,132 @@
 import SwiftUI
 import UIKit
 
+private struct CursorTextField: UIViewRepresentable {
+    let placeholder: String
+    @Binding var text: String
+    @Binding var selection: NSRange
+    @Binding var isFocused: Bool
+    var onSubmit: (() -> Void)?
+
+    func makeUIView(context: Context) -> UITextField {
+        let textField = UITextField(frame: .zero)
+        textField.borderStyle = .none
+        textField.font = .preferredFont(forTextStyle: .body)
+        textField.textColor = .label
+        textField.placeholder = placeholder
+        textField.text = text
+        textField.returnKeyType = .done
+        textField.autocorrectionType = .no
+        textField.autocapitalizationType = .none
+        textField.clearButtonMode = .never
+        textField.delegate = context.coordinator
+        textField.addTarget(context.coordinator, action: #selector(Coordinator.textDidChange(_:)), for: .editingChanged)
+        return textField
+    }
+
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        context.coordinator.parent = self
+
+        if uiView.placeholder != placeholder {
+            uiView.placeholder = placeholder
+        }
+
+        if uiView.text != text {
+            uiView.text = text
+        }
+
+        let clamped = clampedSelection(for: uiView)
+        if context.coordinator.currentSelection(in: uiView) != clamped {
+            context.coordinator.setSelection(clamped, in: uiView)
+        }
+
+        if isFocused, !uiView.isFirstResponder {
+            uiView.becomeFirstResponder()
+        } else if !isFocused, uiView.isFirstResponder {
+            uiView.resignFirstResponder()
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    private func clampedSelection(for textField: UITextField) -> NSRange {
+        let textLength = (textField.text ?? "").utf16.count
+        let location = min(max(0, selection.location), textLength)
+        let maxLength = textLength - location
+        let length = min(max(0, selection.length), maxLength)
+        return NSRange(location: location, length: length)
+    }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: CursorTextField
+
+        init(parent: CursorTextField) {
+            self.parent = parent
+        }
+
+        @objc
+        func textDidChange(_ textField: UITextField) {
+            let updatedText = textField.text ?? ""
+            if parent.text != updatedText {
+                parent.text = updatedText
+            }
+            parent.selection = currentSelection(in: textField)
+        }
+
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            parent.isFocused = true
+            parent.selection = currentSelection(in: textField)
+        }
+
+        func textFieldDidEndEditing(_ textField: UITextField) {
+            parent.isFocused = false
+            parent.selection = currentSelection(in: textField)
+        }
+
+        func textFieldDidChangeSelection(_ textField: UITextField) {
+            parent.selection = currentSelection(in: textField)
+        }
+
+        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            parent.isFocused = false
+            parent.onSubmit?()
+            return true
+        }
+
+        func currentSelection(in textField: UITextField) -> NSRange {
+            guard let selectedRange = textField.selectedTextRange else {
+                let end = (textField.text ?? "").utf16.count
+                return NSRange(location: end, length: 0)
+            }
+
+            let beginning = textField.beginningOfDocument
+            let location = textField.offset(from: beginning, to: selectedRange.start)
+            let length = textField.offset(from: selectedRange.start, to: selectedRange.end)
+            return NSRange(location: max(0, location), length: max(0, length))
+        }
+
+        func setSelection(_ range: NSRange, in textField: UITextField) {
+            guard
+                let start = textField.position(from: textField.beginningOfDocument, offset: range.location),
+                let end = textField.position(from: start, offset: range.length),
+                let textRange = textField.textRange(from: start, to: end)
+            else {
+                return
+            }
+            textField.selectedTextRange = textRange
+        }
+    }
+}
+
 struct HomeView: View {
     @EnvironmentObject private var store: LocalPersistenceStore
     @EnvironmentObject private var navigation: AppNavigationState
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel = CalculatorViewModel()
-    @FocusState private var isInputFocused: Bool
+    @State private var isInputFocused: Bool = false
+    @State private var inputSelection: NSRange = NSRange(location: 0, length: 0)
     private let keyboardTokens = ["%", "+", "-", ",", "."]
 
     private var strings: AppStrings {
@@ -103,6 +223,7 @@ struct HomeView: View {
         .onChange(of: navigation.pendingQuery) { _, newValue in
             guard let newValue else { return }
             viewModel.applyQuery(newValue)
+            inputSelection = NSRange(location: (newValue as NSString).length, length: 0)
             requestInputFocus()
             navigation.pendingQuery = nil
         }
@@ -163,15 +284,14 @@ struct HomeView: View {
 
     private var inputField: some View {
         VStack(spacing: 8) {
-            TextField(strings.queryPlaceholder, text: $viewModel.query, axis: .vertical)
-                .font(.body)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .focused($isInputFocused)
-                .submitLabel(.done)
-                .onSubmit {
-                    isInputFocused = false
-                }
+            CursorTextField(
+                placeholder: strings.queryPlaceholder,
+                text: $viewModel.query,
+                selection: $inputSelection,
+                isFocused: $isInputFocused
+            ) {
+                isInputFocused = false
+            }
                 .padding(.trailing, viewModel.query.isEmpty ? 16 : 44)
                 .padding(16)
                 .background(
@@ -186,6 +306,7 @@ struct HomeView: View {
                     if !viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Button {
                             viewModel.applyQuery("")
+                            inputSelection = NSRange(location: 0, length: 0)
                             isInputFocused = true
                         } label: {
                             Image(systemName: "xmark.circle.fill")
@@ -229,6 +350,7 @@ struct HomeView: View {
                 ForEach(strings.examplePrompts, id: \.self) { prompt in
                     PromptChipView(text: prompt) {
                         viewModel.applyQuery(prompt)
+                        inputSelection = NSRange(location: (prompt as NSString).length, length: 0)
                         isInputFocused = false
                     }
                 }
@@ -272,6 +394,8 @@ struct HomeView: View {
 
     private func requestInputFocus() {
         DispatchQueue.main.async {
+            let end = (viewModel.query as NSString).length
+            inputSelection = NSRange(location: end, length: 0)
             isInputFocused = true
         }
     }
@@ -301,20 +425,46 @@ struct HomeView: View {
     }
 
     private func insertKeyboardToken(_ token: String) {
+        let currentText = viewModel.query
+        let nsText = currentText as NSString
+        let replacementRange = clampedSelection(in: nsText.length)
+
         switch token {
         case "+", "-":
-            let trimmed = viewModel.query.trimmingCharacters(in: .whitespaces)
+            let trimmed = currentText.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.isEmpty {
                 return
             }
-            if viewModel.query.hasSuffix(" ") {
-                viewModel.query.append(token + " ")
-            } else {
-                viewModel.query.append(" " + token + " ")
-            }
+            let insertion = operatorInsertion(token: token, text: nsText, range: replacementRange)
+            let updated = nsText.replacingCharacters(in: replacementRange, with: insertion)
+            viewModel.applyQuery(updated)
+            inputSelection = NSRange(location: replacementRange.location + (insertion as NSString).length, length: 0)
         default:
-            viewModel.query.append(token)
+            let updated = nsText.replacingCharacters(in: replacementRange, with: token)
+            viewModel.applyQuery(updated)
+            inputSelection = NSRange(location: replacementRange.location + (token as NSString).length, length: 0)
         }
+    }
+
+    private func clampedSelection(in textLength: Int) -> NSRange {
+        let location = min(max(0, inputSelection.location), textLength)
+        let maxLength = textLength - location
+        let length = min(max(0, inputSelection.length), maxLength)
+        return NSRange(location: location, length: length)
+    }
+
+    private func operatorInsertion(token: String, text: NSString, range: NSRange) -> String {
+        let leftIndex = range.location - 1
+        let rightIndex = range.location + range.length
+
+        let left = leftIndex >= 0 ? text.substring(with: NSRange(location: leftIndex, length: 1)) : nil
+        let right = rightIndex < text.length ? text.substring(with: NSRange(location: rightIndex, length: 1)) : nil
+
+        let whitespace = CharacterSet.whitespacesAndNewlines
+        let needsLeadingSpace = left != nil && left?.rangeOfCharacter(from: whitespace) == nil
+        let needsTrailingSpace = right == nil || right?.rangeOfCharacter(from: whitespace) == nil
+
+        return (needsLeadingSpace ? " " : "") + token + (needsTrailingSpace ? " " : "")
     }
 
     private func copyResultToClipboard(_ result: CalculationResult) {
