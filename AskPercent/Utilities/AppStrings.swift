@@ -244,8 +244,8 @@ struct AppStrings {
 
     var settingsTaxSection: String {
         switch language {
-        case .english: return "Tax"
-        case .german: return "Steuer"
+        case .english: return "Presets"
+        case .german: return "Presets"
         }
     }
 
@@ -295,6 +295,20 @@ struct AppStrings {
         switch language {
         case .english: return "Tax preset rate"
         case .german: return "Steuer-Preset-Satz"
+        }
+    }
+
+    var settingsTipPresetToggleLabel: String {
+        switch language {
+        case .english: return "Use tip preset"
+        case .german: return "Trinkgeld-Preset nutzen"
+        }
+    }
+
+    var settingsTipPresetPercentLabel: String {
+        switch language {
+        case .english: return "Tip preset rate"
+        case .german: return "Trinkgeld-Preset-Satz"
         }
     }
 
@@ -384,9 +398,9 @@ struct AppStrings {
     var parseFailureTaxPresetMissing: String {
         switch language {
         case .english:
-            return "Add a tax rate, e.g. '100 + 19% tax' or '100 - 19% tax', or enable Tax preset in Settings."
+            return "Add a rate, e.g. '100 + 19% tax' or '100 + 20% tip', or enable the matching preset in Settings."
         case .german:
-            return "Füge einen Steuersatz hinzu, z. B. '100 + 19% Steuer' oder '100 - 19% Steuer', oder aktiviere das Steuer-Preset in den Einstellungen."
+            return "Füge einen Satz hinzu, z. B. '100 + 19% Steuer' oder '100 + 20% Trinkgeld', oder aktiviere das passende Preset in den Einstellungen."
         }
     }
 

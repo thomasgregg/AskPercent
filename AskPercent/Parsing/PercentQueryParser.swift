@@ -3,6 +3,7 @@ import Foundation
 final class PercentQueryParser {
     private let normalizer: QueryNormalizer
     var defaultTaxPercent: Double?
+    var defaultTipPercent: Double?
     private let numberCapture = #"([-+]?\d+(?:[.,']\d+)*)"#
     private let percentTokenPattern = #"(?:%|percent|prozent)"#
     private let reversePercentWholeHints = [
@@ -29,10 +30,12 @@ final class PercentQueryParser {
 
     init(
         normalizer: QueryNormalizer = QueryNormalizer(),
-        defaultTaxPercent: Double? = nil
+        defaultTaxPercent: Double? = nil,
+        defaultTipPercent: Double? = nil
     ) {
         self.normalizer = normalizer
         self.defaultTaxPercent = defaultTaxPercent
+        self.defaultTipPercent = defaultTipPercent
     }
 
     func parse(_ query: String) -> ParseOutcome {
@@ -72,7 +75,7 @@ final class PercentQueryParser {
 
         let ranked = rankAndDeduplicate(candidates: candidates, normalizedQuery: normalized, numericTokens: numericTokens)
         if ranked.isEmpty {
-            if likelyMissingTaxPreset(in: normalized) {
+            if likelyMissingPreset(in: normalized) {
                 return ParseOutcome(
                     normalizedQuery: normalized,
                     candidates: [],
@@ -863,6 +866,7 @@ final class PercentQueryParser {
 
         let connectorPattern = #"(?:with|plus|add|added|include(?:d)?|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
         let kindPattern = #"(tip|tax|sales\s*tax|vat|gst|iva|trinkgeld|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
+        let toConnectorPattern = #"(?:to|onto|auf|zu)"#
 
         let trailingKindPattern = #"\b"# + numberCapture + #"\s*"# + connectorPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + kindPattern + #"\b"#
         for capture in captures(trailingKindPattern, in: text) {
@@ -898,6 +902,26 @@ final class PercentQueryParser {
 
         let kindFirstPattern = #"\b"# + kindPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*(?:on|of|for|auf|von)\s+"# + numberCapture + #"\b"#
         for capture in captures(kindFirstPattern, in: text) {
+            guard
+                let percent = double(capture[1], treatAsPercent: true),
+                let base = double(capture[2])
+            else { continue }
+            let kind = capture[0]
+            results.append(candidateForKind(base: base, percent: percent, kind: kind, confidence: 0.98))
+        }
+
+        let commandTrailingKindPattern = #"\b(?:add|added|addiere|plus|include(?:d)?|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl|füge|fuege)\s+"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + kindPattern + #"\s*"# + toConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+        for capture in captures(commandTrailingKindPattern, in: text) {
+            guard
+                let percent = double(capture[0], treatAsPercent: true),
+                let base = double(capture[2])
+            else { continue }
+            let kind = capture[1]
+            results.append(candidateForKind(base: base, percent: percent, kind: kind, confidence: 0.98))
+        }
+
+        let commandLeadingKindPattern = #"\b(?:add|added|addiere|plus|include(?:d)?|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl|füge|fuege)\s+"# + kindPattern + #"\s*"# + numberCapture + #"\s*"# + percentTokenPattern + #"\s*"# + toConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+        for capture in captures(commandLeadingKindPattern, in: text) {
             guard
                 let percent = double(capture[1], treatAsPercent: true),
                 let base = double(capture[2])
@@ -963,89 +987,194 @@ final class PercentQueryParser {
     }
 
     private func parseTaxPresetNoRate(in text: String) -> [ParseCandidate] {
-        guard let configuredPercent = defaultTaxPercent, configuredPercent >= 0 else { return [] }
+        guard (defaultTaxPercent != nil || defaultTipPercent != nil) else { return [] }
         var results = [ParseCandidate]()
 
         let taxKeywordPattern = #"(tax|sales\s*tax|vat|gst|iva|steuer|mwst|ust|umsatzsteuer|umsatzst(?:euer)?)"#
+        let tipKeywordPattern = #"(tip|trinkgeld)"#
         let plusConnectorPattern = #"(?:with|plus|add|added|include(?:d)?|including|incl(?:uding)?|inc|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl)"#
         let minusConnectorPattern = #"(?:minus|subtract(?:ed)?|substract(?:ed)?|reduce(?:d)?|reduzier(?:e|en|t)|less|excluding|excl(?:uding)?|ex|without|abzüglich|abzueglich|ohne|abzgl)"#
+        let toConnectorPattern = #"(?:to|onto|auf|zu)"#
+        let fromConnectorPattern = #"(?:from|von)"#
 
-        let plusPattern = #"\b"# + numberCapture + #"\s*"# + plusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
-        for capture in captures(plusPattern, in: text) {
-            guard let base = double(capture[0]) else { continue }
-            let kind = capture[1]
-            results.append(
-                candidateForTaxKeyword(
-                    base: base,
-                    percent: configuredPercent,
-                    kind: kind,
-                    confidence: 0.86
+        if let configuredTaxPercent = defaultTaxPercent, configuredTaxPercent >= 0 {
+            let plusPattern = #"\b"# + numberCapture + #"\s*"# + plusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+            for capture in captures(plusPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                let kind = capture[1]
+                results.append(
+                    candidateForTaxKeyword(
+                        base: base,
+                        percent: configuredTaxPercent,
+                        kind: kind,
+                        confidence: 0.86
+                    )
                 )
-            )
+            }
+
+            let plusSymbolPattern = #"\b"# + numberCapture + #"\s*\+\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+            for capture in captures(plusSymbolPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                let kind = capture[1]
+                results.append(
+                    candidateForTaxKeyword(
+                        base: base,
+                        percent: configuredTaxPercent,
+                        kind: kind,
+                        confidence: 0.89
+                    )
+                )
+            }
+
+            let minusPattern = #"\b"# + numberCapture + #"\s*"# + minusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+            for capture in captures(minusPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .subtractPercent(base: base, percent: configuredTaxPercent),
+                        confidence: 0.86,
+                        interpretation: "\(base) minus configured tax"
+                    )
+                )
+            }
+
+            let minusSymbolPattern = #"\b"# + numberCapture + #"\s*-\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+            for capture in captures(minusSymbolPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .subtractPercent(base: base, percent: configuredTaxPercent),
+                        confidence: 0.89,
+                        interpretation: "\(base) minus configured tax"
+                    )
+                )
+            }
+
+            let netPlusPattern = #"\b"# + numberCapture + #"\s+(?:net|netto|before\s+tax|vor\s+steuer)\s*"# + plusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+            for capture in captures(netPlusPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                let kind = capture[1]
+                results.append(
+                    candidateForTaxKeyword(
+                        base: base,
+                        percent: configuredTaxPercent,
+                        kind: kind,
+                        confidence: 0.9
+                    )
+                )
+            }
+
+            let grossMinusPattern = #"\b"# + numberCapture + #"\s+(?:gross|brutto|after\s+tax|nach\s+steuer)\s*"# + minusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
+            for capture in captures(grossMinusPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .subtractPercent(base: base, percent: configuredTaxPercent),
+                        confidence: 0.9,
+                        interpretation: "\(base) gross minus configured tax"
+                    )
+                )
+            }
+
+            let commandAddPattern = #"\b(?:add|added|addiere|plus|include(?:d)?|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl|füge|fuege)\s*(?:the\s+)?"# + taxKeywordPattern + #"\s*"# + toConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+            for capture in captures(commandAddPattern, in: text) {
+                guard let base = double(capture[1]) else { continue }
+                let kind = capture[0]
+                results.append(
+                    candidateForTaxKeyword(
+                        base: base,
+                        percent: configuredTaxPercent,
+                        kind: kind,
+                        confidence: 0.9
+                    )
+                )
+            }
+
+            let commandSubtractPattern = #"\b(?:subtract(?:ed)?|substract(?:ed)?|minus|less|reduce(?:d)?|decrease(?:d)?|lower(?:ed)?|drop(?:ped)?|without|abzüglich|abzueglich|ohne|abzgl)\s*(?:the\s+)?"# + taxKeywordPattern + #"\s*"# + fromConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+            for capture in captures(commandSubtractPattern, in: text) {
+                guard let base = double(capture[1]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .subtractPercent(base: base, percent: configuredTaxPercent),
+                        confidence: 0.9,
+                        interpretation: "\(base) minus configured tax"
+                    )
+                )
+            }
         }
 
-        let plusSymbolPattern = #"\b"# + numberCapture + #"\s*\+\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
-        for capture in captures(plusSymbolPattern, in: text) {
-            guard let base = double(capture[0]) else { continue }
-            let kind = capture[1]
-            results.append(
-                candidateForTaxKeyword(
-                    base: base,
-                    percent: configuredPercent,
-                    kind: kind,
-                    confidence: 0.89
+        if let configuredTipPercent = defaultTipPercent, configuredTipPercent >= 0 {
+            let plusPattern = #"\b"# + numberCapture + #"\s*"# + plusConnectorPattern + #"\s*(?:the\s+)?"# + tipKeywordPattern + #"\b"#
+            for capture in captures(plusPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .tip(base: base, percent: configuredTipPercent),
+                        confidence: 0.86,
+                        interpretation: "\(base) with configured tip"
+                    )
                 )
-            )
-        }
+            }
 
-        let minusPattern = #"\b"# + numberCapture + #"\s*"# + minusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
-        for capture in captures(minusPattern, in: text) {
-            guard let base = double(capture[0]) else { continue }
-            results.append(
-                ParseCandidate(
-                    intent: .subtractPercent(base: base, percent: configuredPercent),
-                    confidence: 0.86,
-                    interpretation: "\(base) minus configured tax"
+            let plusSymbolPattern = #"\b"# + numberCapture + #"\s*\+\s*(?:the\s+)?"# + tipKeywordPattern + #"\b"#
+            for capture in captures(plusSymbolPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .tip(base: base, percent: configuredTipPercent),
+                        confidence: 0.89,
+                        interpretation: "\(base) with configured tip"
+                    )
                 )
-            )
-        }
+            }
 
-        let minusSymbolPattern = #"\b"# + numberCapture + #"\s*-\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
-        for capture in captures(minusSymbolPattern, in: text) {
-            guard let base = double(capture[0]) else { continue }
-            results.append(
-                ParseCandidate(
-                    intent: .subtractPercent(base: base, percent: configuredPercent),
-                    confidence: 0.89,
-                    interpretation: "\(base) minus configured tax"
+            let minusPattern = #"\b"# + numberCapture + #"\s*"# + minusConnectorPattern + #"\s*(?:the\s+)?"# + tipKeywordPattern + #"\b"#
+            for capture in captures(minusPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .subtractPercent(base: base, percent: configuredTipPercent),
+                        confidence: 0.86,
+                        interpretation: "\(base) minus configured tip"
+                    )
                 )
-            )
-        }
+            }
 
-        let netPlusPattern = #"\b"# + numberCapture + #"\s+(?:net|netto|before\s+tax|vor\s+steuer)\s*"# + plusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
-        for capture in captures(netPlusPattern, in: text) {
-            guard let base = double(capture[0]) else { continue }
-            let kind = capture[1]
-            results.append(
-                candidateForTaxKeyword(
-                    base: base,
-                    percent: configuredPercent,
-                    kind: kind,
-                    confidence: 0.9
+            let minusSymbolPattern = #"\b"# + numberCapture + #"\s*-\s*(?:the\s+)?"# + tipKeywordPattern + #"\b"#
+            for capture in captures(minusSymbolPattern, in: text) {
+                guard let base = double(capture[0]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .subtractPercent(base: base, percent: configuredTipPercent),
+                        confidence: 0.89,
+                        interpretation: "\(base) minus configured tip"
+                    )
                 )
-            )
-        }
+            }
 
-        let grossMinusPattern = #"\b"# + numberCapture + #"\s+(?:gross|brutto|after\s+tax|nach\s+steuer)\s*"# + minusConnectorPattern + #"\s*(?:the\s+)?"# + taxKeywordPattern + #"\b"#
-        for capture in captures(grossMinusPattern, in: text) {
-            guard let base = double(capture[0]) else { continue }
-            results.append(
-                ParseCandidate(
-                    intent: .subtractPercent(base: base, percent: configuredPercent),
-                    confidence: 0.9,
-                    interpretation: "\(base) gross minus configured tax"
+            let commandAddPattern = #"\b(?:add|added|addiere|plus|include(?:d)?|including|incl(?:uding)?|mit|inkl(?:usive)?|zuzüglich|zuzueglich|zzgl|füge|fuege)\s*(?:the\s+)?"# + tipKeywordPattern + #"\s*"# + toConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+            for capture in captures(commandAddPattern, in: text) {
+                guard let base = double(capture[1]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .tip(base: base, percent: configuredTipPercent),
+                        confidence: 0.9,
+                        interpretation: "\(base) with configured tip"
+                    )
                 )
-            )
+            }
+
+            let commandSubtractPattern = #"\b(?:subtract(?:ed)?|substract(?:ed)?|minus|less|reduce(?:d)?|decrease(?:d)?|lower(?:ed)?|drop(?:ped)?|without|abzüglich|abzueglich|ohne|abzgl)\s*(?:the\s+)?"# + tipKeywordPattern + #"\s*"# + fromConnectorPattern + #"\s+"# + numberCapture + #"\b"#
+            for capture in captures(commandSubtractPattern, in: text) {
+                guard let base = double(capture[1]) else { continue }
+                results.append(
+                    ParseCandidate(
+                        intent: .subtractPercent(base: base, percent: configuredTipPercent),
+                        confidence: 0.9,
+                        interpretation: "\(base) minus configured tip"
+                    )
+                )
+            }
         }
 
         return results
@@ -1448,8 +1577,8 @@ final class PercentQueryParser {
         hints.contains { text.contains($0) }
     }
 
-    private func likelyMissingTaxPreset(in text: String) -> Bool {
-        guard defaultTaxPercent == nil else { return false }
+    private func likelyMissingPreset(in text: String) -> Bool {
+        if defaultTaxPercent != nil && defaultTipPercent != nil { return false }
 
         let hasPercentRate = text.contains("%") || text.contains("percent") || text.contains("prozent")
         if hasPercentRate { return false }
@@ -1458,8 +1587,13 @@ final class PercentQueryParser {
             "tax", "sales tax", "vat", "gst", "iva",
             "steuer", "mwst", "ust", "umsatzsteuer", "umsatzst"
         ]
+        let tipKeywords = ["tip", "trinkgeld"]
         let hasTaxKeyword = containsAnyHint(in: text, hints: taxKeywords)
-        guard hasTaxKeyword else { return false }
+        let hasTipKeyword = containsAnyHint(in: text, hints: tipKeywords)
+
+        let missingTaxPreset = defaultTaxPercent == nil && hasTaxKeyword
+        let missingTipPreset = defaultTipPercent == nil && hasTipKeyword
+        guard missingTaxPreset || missingTipPreset else { return false }
 
         let contextHints = [
             "plus", "with", "add", "added", "include", "included", "including", "incl", "inc",

@@ -90,6 +90,8 @@ struct UserSettings: Codable, Equatable {
     var numberFormatStyle: NumberFormatStyle
     var taxPresetEnabled: Bool
     var taxPresetPercent: Double
+    var tipPresetEnabled: Bool
+    var tipPresetPercent: Double
 
     static let `default` = UserSettings(
         language: AppLanguage.defaultLanguage,
@@ -98,7 +100,9 @@ struct UserSettings: Codable, Equatable {
         hapticsEnabled: true,
         numberFormatStyle: .system,
         taxPresetEnabled: false,
-        taxPresetPercent: 19
+        taxPresetPercent: 19,
+        tipPresetEnabled: false,
+        tipPresetPercent: 20
     )
 
     init(
@@ -108,7 +112,9 @@ struct UserSettings: Codable, Equatable {
         hapticsEnabled: Bool,
         numberFormatStyle: NumberFormatStyle,
         taxPresetEnabled: Bool,
-        taxPresetPercent: Double
+        taxPresetPercent: Double,
+        tipPresetEnabled: Bool,
+        tipPresetPercent: Double
     ) {
         self.language = language
         self.decimalPrecision = decimalPrecision
@@ -117,6 +123,8 @@ struct UserSettings: Codable, Equatable {
         self.numberFormatStyle = numberFormatStyle
         self.taxPresetEnabled = taxPresetEnabled
         self.taxPresetPercent = taxPresetPercent
+        self.tipPresetEnabled = tipPresetEnabled
+        self.tipPresetPercent = tipPresetPercent
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -127,6 +135,8 @@ struct UserSettings: Codable, Equatable {
         case numberFormatStyle
         case taxPresetEnabled
         case taxPresetPercent
+        case tipPresetEnabled
+        case tipPresetPercent
     }
 
     init(from decoder: Decoder) throws {
@@ -138,5 +148,7 @@ struct UserSettings: Codable, Equatable {
         numberFormatStyle = try container.decodeIfPresent(NumberFormatStyle.self, forKey: .numberFormatStyle) ?? .system
         taxPresetEnabled = try container.decodeIfPresent(Bool.self, forKey: .taxPresetEnabled) ?? false
         taxPresetPercent = try container.decodeIfPresent(Double.self, forKey: .taxPresetPercent) ?? 19
+        tipPresetEnabled = try container.decodeIfPresent(Bool.self, forKey: .tipPresetEnabled) ?? false
+        tipPresetPercent = try container.decodeIfPresent(Double.self, forKey: .tipPresetPercent) ?? 20
     }
 }

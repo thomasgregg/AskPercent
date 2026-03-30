@@ -57,6 +57,23 @@ struct SettingsView: View {
                             }
                         }
                     }
+
+                    Toggle(strings.settingsTipPresetToggleLabel, isOn: tipPresetEnabledBinding)
+
+                    if store.settings.tipPresetEnabled {
+                        Stepper(value: tipPresetPercentBinding, in: 0...100, step: 0.5) {
+                            HStack {
+                                Text(strings.settingsTipPresetPercentLabel)
+                                Spacer()
+                                Text(DisplayFormatter.percent(
+                                    store.settings.tipPresetPercent,
+                                    precision: 1,
+                                    locale: store.settings.numberFormatStyle.locale
+                                ))
+                                .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                 }
 
                 Section(strings.settingsDataSection) {
@@ -135,6 +152,20 @@ struct SettingsView: View {
         Binding(
             get: { store.settings.taxPresetPercent },
             set: { store.settings.taxPresetPercent = min(max($0, 0), 100) }
+        )
+    }
+
+    private var tipPresetEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { store.settings.tipPresetEnabled },
+            set: { store.settings.tipPresetEnabled = $0 }
+        )
+    }
+
+    private var tipPresetPercentBinding: Binding<Double> {
+        Binding(
+            get: { store.settings.tipPresetPercent },
+            set: { store.settings.tipPresetPercent = min(max($0, 0), 100) }
         )
     }
 }

@@ -236,15 +236,22 @@ final class CalculatorViewModel: ObservableObject {
         } else {
             parser.defaultTaxPercent = nil
         }
+
+        if store.settings.tipPresetEnabled {
+            parser.defaultTipPercent = max(store.settings.tipPresetPercent, 0)
+        } else {
+            parser.defaultTipPercent = nil
+        }
     }
 
     private func shouldShowTaxPresetGuidance(for normalizedQuery: String) -> Bool {
-        guard let store, !store.settings.taxPresetEnabled else { return false }
+        guard let store else { return false }
         guard !normalizedQuery.contains("%"),
               !normalizedQuery.contains("percent"),
               !normalizedQuery.contains("prozent") else { return false }
 
         let taxTerms = ["tax", "sales tax", "vat", "gst", "iva", "steuer", "mwst", "ust", "umsatzsteuer", "umsatzst"]
+        let tipTerms = ["tip", "trinkgeld"]
         let contextTerms = [
             "plus", "with", "add", "added", "include", "included", "including", "incl", "inc",
             "minus", "subtract", "subtracted", "substract", "substracted", "reduce", "reduced", "reduziere", "reduziert", "reduzieren", "less", "excluding", "excl", "ex", "without",
@@ -255,7 +262,10 @@ final class CalculatorViewModel: ObservableObject {
         ]
 
         let hasTax = taxTerms.contains { normalizedQuery.contains($0) }
+        let hasTip = tipTerms.contains { normalizedQuery.contains($0) }
         let hasContext = contextTerms.contains { normalizedQuery.contains($0) }
-        return hasTax && hasContext
+        let taxNeedsPreset = hasTax && !store.settings.taxPresetEnabled
+        let tipNeedsPreset = hasTip && !store.settings.tipPresetEnabled
+        return hasContext && (taxNeedsPreset || tipNeedsPreset)
     }
 }

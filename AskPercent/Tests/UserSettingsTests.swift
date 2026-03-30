@@ -6,6 +6,8 @@ final class UserSettingsTests: XCTestCase {
         XCTAssertEqual(UserSettings.default.language, .system)
         XCTAssertFalse(UserSettings.default.taxPresetEnabled)
         XCTAssertEqual(UserSettings.default.taxPresetPercent, 19, accuracy: 0.000_001)
+        XCTAssertFalse(UserSettings.default.tipPresetEnabled)
+        XCTAssertEqual(UserSettings.default.tipPresetPercent, 20, accuracy: 0.000_001)
     }
 
     func testExplicitLanguageResolution() {
@@ -30,5 +32,7 @@ final class UserSettingsTests: XCTestCase {
         XCTAssertEqual(decoded.numberFormatStyle, .us)
         XCTAssertFalse(decoded.taxPresetEnabled)
         XCTAssertEqual(decoded.taxPresetPercent, 19, accuracy: 0.000_001)
+        XCTAssertFalse(decoded.tipPresetEnabled)
+        XCTAssertEqual(decoded.tipPresetPercent, 20, accuracy: 0.000_001)
     }
 }

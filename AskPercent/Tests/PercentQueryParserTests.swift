@@ -335,6 +335,34 @@ final class PercentQueryParserTests: XCTestCase {
             return XCTFail("Expected tax candidate for add connector")
         }
         XCTAssertEqual(try calculator.calculate(intent: addTaxIntent).value, 110, accuracy: 0.000_001)
+
+        let commandAddTax = parser.parse("add 10% tax to 200")
+        XCTAssertEqual(commandAddTax.candidates.first?.intent.type, .tax)
+        guard let commandAddTaxIntent = commandAddTax.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for command tax form")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: commandAddTaxIntent).value, 220, accuracy: 0.000_001)
+
+        let commandAddTip = parser.parse("add 10% tip to 200")
+        XCTAssertEqual(commandAddTip.candidates.first?.intent.type, .tip)
+        guard let commandAddTipIntent = commandAddTip.candidates.first?.intent else {
+            return XCTFail("Expected tip candidate for command tip form")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: commandAddTipIntent).value, 220, accuracy: 0.000_001)
+
+        let commandAddTaxGerman = parser.parse("füge 10% steuer zu 200 hinzu")
+        XCTAssertEqual(commandAddTaxGerman.candidates.first?.intent.type, .tax)
+        guard let commandAddTaxGermanIntent = commandAddTaxGerman.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for German command tax form")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: commandAddTaxGermanIntent).value, 220, accuracy: 0.000_001)
+
+        let commandAddTipGerman = parser.parse("füge 10% trinkgeld zu 200 hinzu")
+        XCTAssertEqual(commandAddTipGerman.candidates.first?.intent.type, .tip)
+        guard let commandAddTipGermanIntent = commandAddTipGerman.candidates.first?.intent else {
+            return XCTFail("Expected tip candidate for German command tip form")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: commandAddTipGermanIntent).value, 220, accuracy: 0.000_001)
     }
 
     func testTaxPresetWithoutExplicitRateEnglish() throws {
@@ -367,6 +395,20 @@ final class PercentQueryParserTests: XCTestCase {
             return XCTFail("Expected tax candidate for add-tax using preset")
         }
         XCTAssertEqual(try calculator.calculate(intent: addTaxIntent).value, 119, accuracy: 0.000_001)
+
+        let addTaxTo = presetParser.parse("add tax to 200")
+        XCTAssertEqual(addTaxTo.candidates.first?.intent.type, .tax)
+        guard let addTaxToIntent = addTaxTo.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for add-tax-to using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: addTaxToIntent).value, 238, accuracy: 0.000_001)
+
+        let addTaxToGerman = presetParser.parse("füge steuer zu 200 hinzu")
+        XCTAssertEqual(addTaxToGerman.candidates.first?.intent.type, .tax)
+        guard let addTaxToGermanIntent = addTaxToGerman.candidates.first?.intent else {
+            return XCTFail("Expected tax candidate for German add-tax-to using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: addTaxToGermanIntent).value, 238, accuracy: 0.000_001)
 
         let plusSymbolTax = presetParser.parse("100 + tax")
         XCTAssertEqual(plusSymbolTax.candidates.first?.intent.type, .tax)
@@ -409,14 +451,20 @@ final class PercentQueryParserTests: XCTestCase {
     }
 
     func testTaxWordWithoutPresetDoesNotInferRate() {
-        let noPresetParser = PercentQueryParser(defaultTaxPercent: nil)
+        let noPresetParser = PercentQueryParser(defaultTaxPercent: nil, defaultTipPercent: nil)
         let samples = [
             "100 plus tax",
             "100 add tax",
+            "add tax to 200",
             "100 minus tax",
             "100 reduce tax",
             "100 + tax",
-            "100 - tax"
+            "100 - tax",
+            "100 plus tip",
+            "100 add tip",
+            "add tip to 200",
+            "100 + tip",
+            "100 mit trinkgeld"
         ]
 
         for sample in samples {
@@ -424,6 +472,45 @@ final class PercentQueryParserTests: XCTestCase {
             XCTAssertTrue(outcome.candidates.isEmpty, "Expected no candidates for: \(sample)")
             XCTAssertEqual(outcome.failureReason, .taxPresetMissing, "Expected tax preset missing for: \(sample)")
         }
+    }
+
+    func testTipPresetWithoutExplicitRateEnglishAndGerman() throws {
+        let presetParser = PercentQueryParser(defaultTaxPercent: nil, defaultTipPercent: 20)
+
+        let plusTip = presetParser.parse("100 plus tip")
+        XCTAssertEqual(plusTip.candidates.first?.intent.type, .tip)
+        guard let plusTipIntent = plusTip.candidates.first?.intent else {
+            return XCTFail("Expected tip candidate using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: plusTipIntent).value, 120, accuracy: 0.000_001)
+
+        let plusSymbolTip = presetParser.parse("100 + tip")
+        XCTAssertEqual(plusSymbolTip.candidates.first?.intent.type, .tip)
+        guard let plusSymbolTipIntent = plusSymbolTip.candidates.first?.intent else {
+            return XCTFail("Expected tip candidate for plus-symbol tip using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: plusSymbolTipIntent).value, 120, accuracy: 0.000_001)
+
+        let germanTip = presetParser.parse("100 mit trinkgeld")
+        XCTAssertEqual(germanTip.candidates.first?.intent.type, .tip)
+        guard let germanTipIntent = germanTip.candidates.first?.intent else {
+            return XCTFail("Expected tip candidate for German tip preset query")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: germanTipIntent).value, 120, accuracy: 0.000_001)
+
+        let addTipTo = presetParser.parse("add tip to 200")
+        XCTAssertEqual(addTipTo.candidates.first?.intent.type, .tip)
+        guard let addTipToIntent = addTipTo.candidates.first?.intent else {
+            return XCTFail("Expected tip candidate for add-tip-to using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: addTipToIntent).value, 240, accuracy: 0.000_001)
+
+        let addTipToGerman = presetParser.parse("füge trinkgeld zu 200 hinzu")
+        XCTAssertEqual(addTipToGerman.candidates.first?.intent.type, .tip)
+        guard let addTipToGermanIntent = addTipToGerman.candidates.first?.intent else {
+            return XCTFail("Expected tip candidate for German add-tip-to using preset")
+        }
+        XCTAssertEqual(try calculator.calculate(intent: addTipToGermanIntent).value, 240, accuracy: 0.000_001)
     }
 
     func testTopIntentMarginAndMarkup() {
